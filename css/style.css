@@ -1,9 +1,53 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+.boot-loading,
+.boot-error {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(180deg, #1a1a2e 0%, #2d1f0e 50%, #1a1008 100%);
+  color: #fff;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
+
+.boot-loading {
+  font-size: 1.25rem;
+  letter-spacing: 2px;
+  color: #ffcc66;
+}
+
+.boot-error.hidden,
+.boot-loading.hidden {
+  display: none;
+}
+
+.boot-error h1 {
+  font-family: "Bangers", "Impact", sans-serif;
+  font-size: 2rem;
+  color: #ff8800;
+  margin-bottom: 12px;
+}
+
+.boot-error p {
+  margin: 8px 0;
+  line-height: 1.5;
+  max-width: 480px;
+}
+
+.boot-error a {
+  color: #ffcc66;
+}
+
+.boot-error code {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 
 html,
 body {

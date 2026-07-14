@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=23';
-import { getRoadPointsForMinimap } from './tracks.js?v=23';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=24';
+import { getRoadPointsForMinimap } from './tracks.js?v=24';
 import {
   buildItemBoxGroup,
   buildCoinGroup,
   buildShellGroup,
   buildBananaGroup,
-} from './itemMeshes.js?v=23';
+} from './itemMeshes.js?v=24';
 import {
   buildGrassBase,
   buildRoad,
@@ -16,7 +16,7 @@ import {
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=23';
+} from './trackbuilder.js?v=24';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -107,6 +107,9 @@ export class Renderer3D {
     this.camPos = new THREE.Vector3();
 
     this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
+    if (!this.renderer.getContext()) {
+      throw new Error('WebGL is not available on this device. Try another browser or enable hardware acceleration.');
+    }
     this.renderer.setSize(CANVAS_W, CANVAS_H);
     this.renderer.setPixelRatio(1);
     this.renderer.shadowMap.enabled = false;

@@ -1,4 +1,4 @@
-import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=23';
+import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=24';
 
 const SAVE_KEY = 'offroad-spinoff-save';
 
@@ -9,10 +9,14 @@ const DEFAULT_SAVE = {
   championshipsWon: 0,
 };
 
+function cloneSave(data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
 export function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return structuredClone(DEFAULT_SAVE);
+    if (!raw) return cloneSave(DEFAULT_SAVE);
     const data = JSON.parse(raw);
     return {
       ...DEFAULT_SAVE,
@@ -20,7 +24,7 @@ export function loadSave() {
       upgrades: { ...DEFAULT_SAVE.upgrades, ...(data.upgrades || {}) },
     };
   } catch {
-    return structuredClone(DEFAULT_SAVE);
+    return cloneSave(DEFAULT_SAVE);
   }
 }
 
@@ -72,6 +76,6 @@ export function unlockNextTrack(save, trackIndex) {
 }
 
 export function resetSave() {
-  writeSave(structuredClone(DEFAULT_SAVE));
+  writeSave(cloneSave(DEFAULT_SAVE));
   return loadSave();
 }

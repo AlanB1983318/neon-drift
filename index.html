@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=23">
+  <link rel="stylesheet" href="css/style.css?v=24">
   <script type="importmap">
   {
     "imports": {
@@ -20,10 +20,38 @@
   </script>
 </head>
 <body>
+  <div id="boot-error" class="boot-error hidden"></div>
+  <div id="boot-loading" class="boot-loading">Loading Super Off-Road…</div>
   <div id="app">
     <div id="game-container"></div>
     <div id="ui-overlay"></div>
   </div>
-  <script type="module" src="js/main.js?v=23"></script>
+  <script>
+    (function () {
+      if (location.protocol === 'file:') {
+        document.getElementById('boot-loading').classList.add('hidden');
+        var err = document.getElementById('boot-error');
+        err.classList.remove('hidden');
+        err.innerHTML = '<h1>Cannot run from a local file</h1><p>Open the live game instead:</p><p><a href="https://alanb1983318.github.io/neon-drift/">alanb1983318.github.io/neon-drift</a></p><p>Or run a local server in the project folder:<br><code>npx serve .</code></p>';
+        return;
+      }
+      window.addEventListener('error', function (e) {
+        var box = document.getElementById('boot-error');
+        var load = document.getElementById('boot-loading');
+        if (load) load.classList.add('hidden');
+        box.classList.remove('hidden');
+        box.innerHTML = '<h1>Game failed to load</h1><p>' + (e.message || 'Unknown error') + '</p><p>Try a hard refresh: Ctrl+Shift+R (or clear cache on mobile).</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=24">Reload live version</a></p>';
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var box = document.getElementById('boot-error');
+        var load = document.getElementById('boot-loading');
+        if (load) load.classList.add('hidden');
+        box.classList.remove('hidden');
+        var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason || 'Module load failed');
+        box.innerHTML = '<h1>Game failed to load</h1><p>' + msg + '</p><p>Check your connection (Three.js loads from CDN). Hard refresh: Ctrl+Shift+R.</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=24">Reload live version</a></p>';
+      });
+    })();
+  </script>
+  <script type="module" src="js/main.js?v=24"></script>
 </body>
 </html>
