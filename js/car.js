@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE, angleDiff } from './utils.js?v=24';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=25';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -40,6 +40,7 @@ export class Car {
     this.coins = 0;
     this.launchBoost = 0;
     this.checkpointCooldown = 0;
+    this.leftStartZone = false;
   }
 
   reset(x, y, angle) {
@@ -68,6 +69,7 @@ export class Car {
     this.coins = 0;
     this.launchBoost = 0;
     this.checkpointCooldown = 0;
+    this.leftStartZone = false;
   }
 
   spinOut(frames = 75) {
@@ -302,21 +304,31 @@ export class Car {
 
     const cp = checkpoints[this.checkpoint];
     if (!cp) return;
-    if (dist(this.x, this.y, cp.x, cp.y) >= cp.radius) return;
 
-    const speed = Math.hypot(this.vx, this.vy);
-    if (speed > 0.8 && checkpoints.length > 1) {
+    const inZone = dist(this.x, this.y, cp.x, cp.y) < cp.radius;
+
+    // Cars spawn inside the start/finish line — wait until they drive out once.
+    if (this.checkpoint === 0 && !this.leftStartZone) {
+      if (!inZone) this.leftStartZone = true;
+      return;
+    }
+
+    if (!inZone) return;
+
+    if (Math.abs(this.speed) > 0.5 && checkpoints.length > 1) {
       const next = checkpoints[(this.checkpoint + 1) % checkpoints.length];
       const exitAngle = Math.atan2(next.y - cp.y, next.x - cp.x);
-      const moveAngle = Math.atan2(this.vy, this.vx);
-      if (Math.abs(angleDiff(moveAngle, exitAngle)) > 1.4) return;
+      const forward = Math.cos(this.angle) * Math.cos(exitAngle) + Math.sin(this.angle) * Math.sin(exitAngle);
+      if (forward < 0.25) return;
     }
 
     this.checkpoint++;
-    this.checkpointCooldown = 45;
+    this.checkpointCooldown = 30;
     if (this.checkpoint >= checkpoints.length) {
       this.checkpoint = 0;
       this.lap++;
+      const startCp = checkpoints[0];
+      this.leftStartZone = dist(this.x, this.y, startCp.x, startCp.y) >= startCp.radius;
       if (this.lap >= LAPS_PER_RACE) {
         this.finished = true;
         this.finishTime = this.raceTime;

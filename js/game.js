@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=24';
-import { AIController } from './ai.js?v=24';
-import { Renderer3D } from './renderer3d.js?v=24';
-import { AudioEngine } from './audio.js?v=24';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=24';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=24';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=24';
-import { ItemSystem, ITEMS } from './items.js?v=24';
+import { Car } from './car.js?v=25';
+import { AIController } from './ai.js?v=25';
+import { Renderer3D } from './renderer3d.js?v=25';
+import { AudioEngine } from './audio.js?v=25';
+import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=25';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=25';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=25';
+import { ItemSystem, ITEMS } from './items.js?v=25';
 
 export const GameState = {
   MENU: 'menu',
@@ -201,8 +201,8 @@ export class Game {
       if (a.finished && b.finished) return a.finishTime - b.finishTime;
       if (a.finished) return -1;
       if (b.finished) return 1;
-      const aProg = a.lap * 1000 + a.checkpoint;
-      const bProg = b.lap * 1000 + b.checkpoint;
+      const aProg = getRaceProgress(a, this.track);
+      const bProg = getRaceProgress(b, this.track);
       return bProg - aProg;
     });
   }

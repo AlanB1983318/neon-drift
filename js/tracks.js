@@ -1,5 +1,5 @@
-import { SURFACE } from './utils.js?v=24';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=24';
+import { SURFACE, dist, clamp } from './utils.js?v=25';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=25';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -296,6 +296,19 @@ export function getSurfaceAt(track, x, y) {
   }
 
   return 'GRASS';
+}
+
+export function getRaceProgress(car, track) {
+  const cps = track.checkpoints;
+  if (!cps?.length) return car.lap * 1e6;
+
+  const cp = cps[car.checkpoint];
+  const next = cps[(car.checkpoint + 1) % cps.length];
+  const segLen = dist(cp.x, cp.y, next.x, next.y) || 1;
+  const distToNext = dist(car.x, car.y, next.x, next.y);
+  const segmentProg = clamp(1 - distToNext / segLen, 0, 1);
+
+  return car.lap * 1e6 + car.checkpoint * 1e4 + segmentProg * 1e4;
 }
 
 export function getRoadPointsForMinimap(track) {
