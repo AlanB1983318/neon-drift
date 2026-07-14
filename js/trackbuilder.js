@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=12';
-import { getSurfaceAt } from './tracks.js?v=12';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=13';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -27,65 +26,120 @@ export function buildGrassBase(textures) {
     map: textures.grass,
   })));
   mesh.rotation.x = -Math.PI / 2;
-  mesh.position.y = 0;
   return mesh;
 }
 
-export function buildRacingSurfaces(track, textures) {
-  const group = new THREE.Group();
+function subdividePath(wps, closed, spacing = 14) {
+  const pts = [];
+  const n = wps.length;
+  const segs = closed ? n : n - 1;
+  for (let i = 0; i < segs; i++) {
+    const a = wps[i];
+    const b = wps[(i + 1) % n];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const steps = Math.max(2, Math.ceil(len / spacing));
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps;
+      pts.push({ x: a.x + dx * t, y: a.y + dy * t });
+    }
+  }
+  if (!closed) pts.push({ x: wps[n - 1].x, y: wps[n - 1].y });
+  return pts;
+}
 
-  for (const surf of track.surfaces) {
-    if (surf.type === 'GRASS' || surf.type === 'WATER') continue;
+function buildRibbonMesh(points, halfRoad, halfShoulder, roadY, textures, roadKey = 'dirt') {
+  const totalHalf = halfRoad + halfShoulder;
+  const verts = [];
+  const uvs = [];
+  const colors = [];
+  const indices = [];
+  const roadCol = new THREE.Color(SURFACE[roadKey === 'asphalt' ? 'ASPHALT' : 'DIRT'].color);
+  const shoulderCol = new THREE.Color(0x7a6848);
+  let dist = 0;
 
-    const texKey = { DIRT: 'dirt', MUD: 'mud', ASPHALT: 'asphalt' }[surf.type];
-    const surfaceMat = mat(`surf-${surf.type}`, () => new THREE.MeshLambertMaterial({
-      color: SURFACE[surf.type].color,
-      map: texKey ? textures[texKey] : null,
-    }));
-
-    if (surf.shape === 'ellipse') {
-      if (surf.type === 'DIRT') {
-        const segments = 40;
-        const innerRx = (surf.rx - 20) * SCALE;
-        const innerRy = (surf.ry - 20) * SCALE;
-        const outerRx = surf.rx * SCALE;
-        const outerRy = surf.ry * SCALE;
-        group.add(buildBankedRing(
-          gx(surf.cx), gz(surf.cy),
-          innerRx, innerRy, outerRx, outerRy,
-          segments, surfaceMat, 0.16
-        ));
-      } else {
-        const mesh = new THREE.Mesh(new THREE.CircleGeometry(1, 20), surfaceMat);
-        mesh.rotation.x = -Math.PI / 2;
-        mesh.position.set(gx(surf.cx), 0.14, gz(surf.cy));
-        mesh.scale.set(surf.rx * SCALE, surf.ry * SCALE, 1);
-        group.add(mesh);
-      }
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    let tx, ty;
+    if (i < points.length - 1) {
+      tx = points[i + 1].x - p.x;
+      ty = points[i + 1].y - p.y;
     } else {
-      const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(surf.w * SCALE, surf.h * SCALE),
-        surfaceMat
-      );
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.set(gx(surf.x + surf.w / 2), 0.14, gz(surf.y + surf.h / 2));
-      group.add(mesh);
+      tx = p.x - points[i - 1].x;
+      ty = p.y - points[i - 1].y;
+    }
+    const len = Math.sqrt(tx * tx + ty * ty) || 1;
+    const nx = -ty / len;
+    const ny = tx / len;
+    const crown = 0.02;
+
+    const leftRoad = { x: p.x + nx * halfRoad, y: p.y + ny * halfRoad };
+    const rightRoad = { x: p.x - nx * halfRoad, y: p.y - ny * halfRoad };
+    const leftOut = { x: p.x + nx * totalHalf, y: p.y + ny * totalHalf };
+    const rightOut = { x: p.x - nx * totalHalf, y: p.y - ny * totalHalf };
+
+    const push = (gp, col, u) => {
+      verts.push(gx(gp.x), roadY, gz(gp.y));
+      colors.push(col.r, col.g, col.b);
+      uvs.push(u, 0);
+    };
+
+    const base = verts.length / 3;
+    push(leftOut, shoulderCol, dist * SCALE * 0.08);
+    push(leftRoad, roadCol, dist * SCALE * 0.08);
+    push(rightRoad, roadCol, dist * SCALE * 0.08);
+    push(rightOut, shoulderCol, dist * SCALE * 0.08);
+
+    if (i > 0) dist += Math.sqrt(tx * tx + ty * ty);
+
+    if (i > 0) {
+      const prev = base - 4;
+      indices.push(prev, prev + 1, base + 1, prev, base + 1, base);
+      indices.push(prev + 1, prev + 2, base + 2, prev + 1, base + 2, base + 1);
+      indices.push(prev + 2, prev + 3, base + 3, prev + 2, base + 3, base + 2);
     }
   }
 
-  return group;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+
+  const tex = textures[roadKey] || textures.dirt;
+  return new THREE.Mesh(geo, mat(`road-${roadKey}`, () => new THREE.MeshLambertMaterial({
+    map: tex,
+    vertexColors: true,
+  })));
+}
+
+function buildEllipticalRoad(surf, track, textures) {
+  const roadW = track.roadWidth || 64;
+  const innerRx = (surf.rx - roadW) * SCALE;
+  const innerRy = (surf.ry - roadW * (surf.ry / surf.rx)) * SCALE;
+  const outerRx = surf.rx * SCALE;
+  const outerRy = surf.ry * SCALE;
+  const segments = 48;
+  const roadKey = track.roadType === 'ASPHALT' ? 'asphalt' : 'dirt';
+  const tex = textures[roadKey] || textures.road;
+  const material = mat('oval-road', () => new THREE.MeshLambertMaterial({
+    color: SURFACE[track.roadType || 'DIRT'].color,
+    map: tex,
+  }));
+  return buildBankedRing(gx(surf.cx), gz(surf.cy), innerRx, innerRy, outerRx, outerRy, segments, material, 0.14);
 }
 
 function buildBankedRing(cx, cz, innerRx, innerRy, outerRx, outerRy, segments, material, baseHeight) {
   const verts = [];
   const uvs = [];
-
   for (let i = 0; i <= segments; i++) {
     const t = (i / segments) * Math.PI * 2;
     const cos = Math.cos(t);
     const sin = Math.sin(t);
-    const bank = Math.abs(Math.sin(t * 2)) * 0.06;
-    const crown = Math.cos(t * 2) * 0.025;
+    const bank = Math.abs(Math.sin(t * 2)) * 0.05;
+    const crown = Math.cos(t * 2) * 0.02;
     const h = baseHeight + bank;
     verts.push(
       cx + cos * innerRx, h + crown, cz + sin * innerRy,
@@ -93,13 +147,11 @@ function buildBankedRing(cx, cz, innerRx, innerRy, outerRx, outerRy, segments, m
     );
     uvs.push(i / segments, 0, i / segments, 1);
   }
-
   const indices = [];
   for (let i = 0; i < segments; i++) {
     const a = i * 2;
     indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
   }
-
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
@@ -108,61 +160,89 @@ function buildBankedRing(cx, cz, innerRx, innerRy, outerRx, outerRy, segments, m
   return new THREE.Mesh(geo, material);
 }
 
-export function buildRacingLine(track) {
+export function buildRoad(track, textures) {
+  const ellipse = track.surfaces?.find((s) => s.type === 'DIRT' && s.shape === 'ellipse');
+  if (ellipse || track.roadShape === 'oval') {
+    const surf = ellipse || {
+      cx: 480, cy: 320, rx: 310, ry: 210,
+    };
+    return buildEllipticalRoad(surf, track, textures);
+  }
+
+  const wps = track.waypoints;
+  if (!wps || wps.length < 2) return new THREE.Group();
+
+  const halfRoad = (track.roadWidth || 58) / 2;
+  const halfShoulder = track.shoulderWidth || 10;
+  const closed = track.roadClosed !== false;
+  const points = subdividePath(wps, closed, 12);
+  const roadKey = track.roadType === 'ASPHALT' ? 'asphalt' : 'dirt';
+  return buildRibbonMesh(points, halfRoad, halfShoulder, 0.14, textures, roadKey);
+}
+
+export function buildRoadMarkings(track) {
   const group = new THREE.Group();
   const wps = track.waypoints;
   if (!wps || wps.length < 2) return group;
 
-  const lineMat = mat('line', () => new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }));
+  const ellipse = track.surfaces?.find((s) => s.type === 'DIRT' && s.shape === 'ellipse');
+  if (ellipse || track.roadShape === 'oval') {
+    const surf = ellipse || { cx: 480, cy: 320, rx: 310, ry: 210 };
+    const midRx = (surf.rx - (track.roadWidth || 64) / 2) * SCALE;
+    const midRy = (surf.ry - (track.roadWidth || 64) / 2 * (surf.ry / surf.rx)) * SCALE;
+    const segments = 40;
+    const lineMat = mat('center-line', () => new THREE.MeshLambertMaterial({ color: 0xf5f5f5 }));
+    for (let i = 0; i < segments; i += 2) {
+      const t = (i / segments) * Math.PI * 2;
+      const t2 = ((i + 1) / segments) * Math.PI * 2;
+      const x1 = gx(surf.cx) + Math.cos(t) * midRx;
+      const z1 = gz(surf.cy) + Math.sin(t) * midRy;
+      const x2 = gx(surf.cx) + Math.cos(t2) * midRx;
+      const z2 = gz(surf.cy) + Math.sin(t2) * midRy;
+      const len = Math.sqrt((x2 - x1) ** 2 + (z2 - z1) ** 2);
+      const dash = new THREE.Mesh(new THREE.BoxGeometry(len, 0.03, 0.1), lineMat);
+      dash.position.set((x1 + x2) / 2, 0.17, (z1 + z2) / 2);
+      dash.rotation.y = Math.atan2(z2 - z1, x2 - x1);
+      group.add(dash);
+    }
+    return group;
+  }
+
+  const halfRoad = (track.roadWidth || 58) / 2;
+  const closed = track.roadClosed !== false;
+  const points = subdividePath(wps, closed, 20);
+  const lineMat = mat('center-line', () => new THREE.MeshLambertMaterial({ color: 0xf5f5f5 }));
   const curbRed = mat('curb-r', () => new THREE.MeshLambertMaterial({ color: 0xdd2222 }));
   const curbWhite = mat('curb-w', () => new THREE.MeshLambertMaterial({ color: 0xeeeeee }));
-  const edgeMat = mat('edge', () => new THREE.MeshLambertMaterial({ color: 0xcccccc }));
 
-  const trackWidth = track.trackWidth || 58;
+  for (let i = 0; i < points.length; i += 3) {
+    const p = points[i];
+    let tx, ty;
+    if (i < points.length - 1) {
+      tx = points[i + 1].x - p.x;
+      ty = points[i + 1].y - p.y;
+    } else {
+      tx = p.x - points[i - 1].x;
+      ty = p.y - points[i - 1].y;
+    }
+    const len = Math.sqrt(tx * tx + ty * ty) || 1;
+    const nx = -ty / len;
+    const ny = tx / len;
+    const angle = Math.atan2(ty, tx);
 
-  for (let i = 0; i < wps.length; i++) {
-    const a = wps[i];
-    const b = wps[(i + 1) % wps.length];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const steps = Math.max(2, Math.floor(len / 28));
-    const px = -dy / len;
-    const py = dx / len;
-    const angle = Math.atan2(dy, dx);
-
-    for (let s = 0; s < steps; s++) {
-      const t = (s + 0.5) / steps;
-      const wx = a.x + dx * t;
-      const wy = a.y + dy * t;
-
-      if (s % 2 === 0) {
-        const dash = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.04, 0.1), lineMat);
-        dash.position.set(gx(wx), 0.17, gz(wy));
-        dash.rotation.y = angle;
-        group.add(dash);
-      }
-
-      if (s === Math.floor(steps / 2) && i % 2 === 0) {
-        const offset = trackWidth * 0.46;
-        for (const [side, cMat] of [[-1, curbRed], [1, curbWhite]]) {
-          const curb = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.22), cMat);
-          curb.position.set(gx(wx + px * offset * side), 0.16, gz(wy + py * offset * side));
-          curb.rotation.y = angle;
-          group.add(curb);
-        }
-      }
+    if (i % 6 < 3) {
+      const dash = new THREE.Mesh(new THREE.BoxGeometry(0.5 * SCALE * 20, 0.03, 0.09), lineMat);
+      dash.position.set(gx(p.x), 0.17, gz(p.y));
+      dash.rotation.y = angle;
+      group.add(dash);
     }
 
-    if (i % 2 === 0) {
-      const mx = (a.x + b.x) / 2;
-      const my = (a.y + b.y) / 2;
-      const edgeOff = trackWidth * 0.48;
-      for (const side of [-1, 1]) {
-        const edge = new THREE.Mesh(new THREE.BoxGeometry(len * SCALE * 0.95, 0.06, 0.14), edgeMat);
-        edge.position.set(gx(mx + px * edgeOff * side), 0.155, gz(my + py * edgeOff * side));
-        edge.rotation.y = angle;
-        group.add(edge);
+    if (i % 12 === 0) {
+      for (const [side, cMat] of [[-1, curbRed], [1, curbWhite]]) {
+        const curb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.2), cMat);
+        curb.position.set(gx(p.x + nx * halfRoad * side), 0.16, gz(p.y + ny * halfRoad * side));
+        curb.rotation.y = angle;
+        group.add(curb);
       }
     }
   }
@@ -170,10 +250,38 @@ export function buildRacingLine(track) {
   return group;
 }
 
+export function buildHazardPatches(track, textures) {
+  const group = new THREE.Group();
+  for (const surf of track.surfaces) {
+    if (surf.type !== 'MUD' && surf.type !== 'ASPHALT') continue;
+    const texKey = surf.type === 'MUD' ? 'mud' : 'asphalt';
+    const surfaceMat = mat(`hazard-${surf.type}`, () => new THREE.MeshLambertMaterial({
+      color: SURFACE[surf.type].color,
+      map: textures[texKey],
+    }));
+
+    if (surf.shape === 'ellipse') {
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(1, 16), surfaceMat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(gx(surf.cx), 0.155, gz(surf.cy));
+      mesh.scale.set(surf.rx * SCALE, surf.ry * SCALE, 1);
+      group.add(mesh);
+    } else {
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(surf.w * SCALE, surf.h * SCALE),
+        surfaceMat
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(gx(surf.x + surf.w / 2), 0.155, gz(surf.y + surf.h / 2));
+      group.add(mesh);
+    }
+  }
+  return group;
+}
+
 export function buildSimpleBarrier(wall) {
   const w = wall.w * SCALE;
   const h = wall.h * SCALE;
-  const isHoriz = w > h;
   const mesh = new THREE.Mesh(
     new THREE.BoxGeometry(w, 0.9, h),
     mat('barrier', () => new THREE.MeshLambertMaterial({ color: 0x2a2a2a }))
@@ -198,9 +306,8 @@ export function buildStartGrid(start) {
     const sin = Math.sin(angle);
     const base = verts.length / 3;
     const c = i % 2 === 0 ? 1 : 0.07;
-    const corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
-    for (const [lx, lz] of corners) {
-      verts.push(cx + lx * cos - lz * sin, 0.17, cz + lx * sin + lz * cos);
+    for (const [lx, lz] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) {
+      verts.push(cx + lx * cos - lz * sin, 0.18, cz + lx * sin + lz * cos);
       colors.push(c, c, c);
     }
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
@@ -216,7 +323,7 @@ export function buildStartGrid(start) {
 
 export function buildWaterPool(surf) {
   const mesh = new THREE.Mesh(
-    new THREE.CircleGeometry(1, 12),
+    new THREE.CircleGeometry(1, 10),
     mat('water', () => new THREE.MeshLambertMaterial({
       color: 0x3a78a8,
       transparent: true,
@@ -224,7 +331,7 @@ export function buildWaterPool(surf) {
     }))
   );
   mesh.rotation.x = -Math.PI / 2;
-  mesh.position.set(gx(surf.cx || surf.x + surf.w / 2), 0.03, gz(surf.cy || surf.y + surf.h / 2));
+  mesh.position.set(gx(surf.cx || surf.x + surf.w / 2), 0.04, gz(surf.cy || surf.y + surf.h / 2));
   if (surf.shape === 'ellipse') {
     mesh.scale.set(surf.rx * SCALE, surf.ry * SCALE, 1);
   } else {
@@ -233,8 +340,9 @@ export function buildWaterPool(surf) {
   return mesh;
 }
 
-// Legacy exports for compatibility
 export const buildTerrain = buildGrassBase;
-export const buildTrackOverlay = buildRacingSurfaces;
+export const buildTrackOverlay = buildRoad;
+export const buildRacingLine = buildRoadMarkings;
+export const buildRacingSurfaces = buildHazardPatches;
 export const buildTireBarrier = buildSimpleBarrier;
 export function buildFenceAlongEllipse() { return new THREE.Group(); }

@@ -1,5 +1,5 @@
-import { SURFACE } from './utils.js?v=12';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=12';
+import { SURFACE } from './utils.js?v=13';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=13';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -14,15 +14,57 @@ function makeTrack(config) {
     decorations: config.decorations || [],
     itemBoxes: config.itemBoxes || boxesFromWaypoints(waypoints, 3),
     coins: config.coins || coinsFromWaypoints(waypoints, 2),
-    trackWidth: config.trackWidth || 58,
+    roadWidth: config.roadWidth || 58,
+    shoulderWidth: config.shoulderWidth || 10,
+    roadType: config.roadType || 'DIRT',
+    roadClosed: config.roadClosed !== false,
+    roadShape: config.roadShape || null,
   };
+}
+
+function distToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(px - ax, py - ay);
+  let t = ((px - ax) * dx + (py - ay) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+function isOnWaypointRoad(track, x, y) {
+  const wps = track.waypoints;
+  if (!wps || wps.length < 2) return false;
+  const half = (track.roadWidth || 58) / 2 + (track.shoulderWidth || 10);
+  const closed = track.roadClosed !== false;
+  const segs = closed ? wps.length : wps.length - 1;
+  let minD = Infinity;
+  for (let i = 0; i < segs; i++) {
+    const a = wps[i];
+    const b = wps[(i + 1) % wps.length];
+    minD = Math.min(minD, distToSegment(x, y, a.x, a.y, b.x, b.y));
+  }
+  return minD <= half;
+}
+
+function isOnOvalRoad(track, x, y) {
+  const e = track.surfaces?.find((s) => s.shape === 'ellipse' && s.type === 'DIRT')
+    || (track.roadShape === 'oval' ? { cx: 480, cy: 320, rx: 310, ry: 210 } : null);
+  if (!e) return false;
+  const roadW = track.roadWidth || 64;
+  const outer = ((x - e.cx) / e.rx) ** 2 + ((y - e.cy) / e.ry) ** 2;
+  const innerRx = e.rx - roadW;
+  const innerRy = e.ry - roadW * (e.ry / e.rx);
+  const inner = ((x - e.cx) / innerRx) ** 2 + ((y - e.cy) / innerRy) ** 2;
+  return outer <= 1 && inner >= 1;
 }
 
 export const TRACKS = [
   makeTrack({
     name: 'Dirt Oval',
     description: 'Learn the ropes on this classic oval track.',
-    trackWidth: 72,
+    roadShape: 'oval',
+    roadWidth: 68,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', shape: 'ellipse', cx: 480, cy: 320, rx: 310, ry: 210 },
@@ -54,16 +96,15 @@ export const TRACKS = [
       { type: 'cone', x: 120, y: 160 }, { type: 'cone', x: 840, y: 160 },
       { type: 'tire', x: 150, y: 540, scale: 1.2 }, { type: 'tire', x: 810, y: 540, scale: 1.2 },
       { type: 'tree', x: 50, y: 250 }, { type: 'tree', x: 910, y: 250 },
-      { type: 'tree', x: 50, y: 420 }, { type: 'tree', x: 910, y: 420 },
     ],
   }),
 
   makeTrack({
     name: 'Mud Bog',
     description: 'Watch out — the swamp will slow you right down.',
+    roadWidth: 62,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'DIRT', x: 120, y: 80, w: 720, h: 480 },
       { type: 'MUD', x: 380, y: 240, w: 200, h: 160 },
       { type: 'WATER', x: 430, y: 290, w: 100, h: 60 },
       { type: 'ASPHALT', x: 120, y: 280, w: 80, h: 80 },
@@ -98,19 +139,15 @@ export const TRACKS = [
     decorations: [
       { type: 'tree', x: 60, y: 120 }, { type: 'tree', x: 900, y: 120 },
       { type: 'rock', x: 350, y: 180 }, { type: 'rock', x: 610, y: 420 },
-      { type: 'tire', x: 100, y: 580 }, { type: 'tire', x: 860, y: 580 },
     ],
   }),
 
   makeTrack({
     name: 'Crossover',
     description: 'Hit the bridge at full throttle.',
+    roadWidth: 54,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'DIRT', x: 80, y: 60, w: 380, h: 260 },
-      { type: 'DIRT', x: 500, y: 60, w: 380, h: 260 },
-      { type: 'DIRT', x: 80, y: 320, w: 380, h: 260 },
-      { type: 'DIRT', x: 500, y: 320, w: 380, h: 260 },
       { type: 'ASPHALT', x: 420, y: 280, w: 120, h: 80 },
       { type: 'MUD', x: 200, y: 420, w: 100, h: 80 },
       { type: 'MUD', x: 660, y: 140, w: 100, h: 80 },
@@ -143,17 +180,17 @@ export const TRACKS = [
     ],
     decorations: [
       { type: 'flag', x: 480, y: 320 },
-      { type: 'cone', x: 480, y: 250 }, { type: 'cone', x: 480, y: 390 },
-      { type: 'tree', x: 30, y: 320 }, { type: 'tree', x: 930, y: 320 },
+      { type: 'cone', x: 480, y: 250 },
+      { type: 'tree', x: 30, y: 320 },
     ],
   }),
 
   makeTrack({
     name: 'Canyon Run',
     description: 'Tight turns and a long straight — hold on tight.',
+    roadWidth: 56,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'DIRT', x: 100, y: 200, w: 760, h: 240 },
       { type: 'ASPHALT', x: 100, y: 280, w: 300, h: 80 },
       { type: 'MUD', x: 500, y: 220, w: 80, h: 200 },
       { type: 'MUD', x: 680, y: 220, w: 80, h: 200 },
@@ -165,7 +202,6 @@ export const TRACKS = [
       { x: 860, y: 180, w: 20, h: 280 },
       { x: 400, y: 200, w: 20, h: 60 },
       { x: 540, y: 380, w: 20, h: 60 },
-      { x: 620, y: 200, w: 20, h: 60 },
     ],
     checkpoints: [
       { x: 140, y: 320, radius: 50 },
@@ -186,19 +222,18 @@ export const TRACKS = [
       { x: 120, y: 290, angle: 0 },
     ],
     decorations: [
-      { type: 'rock', x: 500, y: 160 }, { type: 'rock', x: 700, y: 160 },
-      { type: 'rock', x: 500, y: 480 }, { type: 'rock', x: 700, y: 480 },
+      { type: 'rock', x: 500, y: 160 },
       { type: 'grandstand', x: 480, y: 150 },
-      { type: 'tire', x: 90, y: 180 }, { type: 'tire', x: 870, y: 180 },
+      { type: 'tire', x: 90, y: 180 },
     ],
   }),
 
   makeTrack({
     name: 'Grand Prix',
     description: 'The championship finale. Every hazard, one winner.',
+    roadWidth: 60,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'DIRT', x: 140, y: 100, w: 680, h: 440 },
       { type: 'ASPHALT', x: 140, y: 280, w: 200, h: 80 },
       { type: 'ASPHALT', x: 620, y: 280, w: 200, h: 80 },
       { type: 'MUD', x: 400, y: 160, w: 160, h: 100 },
@@ -212,10 +247,6 @@ export const TRACKS = [
       { x: 820, y: 80, w: 20, h: 480 },
       { x: 360, y: 140, w: 20, h: 80 },
       { x: 580, y: 140, w: 20, h: 80 },
-      { x: 360, y: 420, w: 20, h: 80 },
-      { x: 580, y: 420, w: 20, h: 80 },
-      { x: 360, y: 280, w: 80, h: 20 },
-      { x: 520, y: 340, w: 80, h: 20 },
     ],
     checkpoints: [
       { x: 480, y: 510, radius: 55 },
@@ -239,10 +270,8 @@ export const TRACKS = [
     decorations: [
       { type: 'grandstand', x: 480, y: 60 },
       { type: 'flag', x: 480, y: 60 },
-      { type: 'tire', x: 130, y: 530 }, { type: 'tire', x: 810, y: 530 },
-      { type: 'cone', x: 200, y: 100 }, { type: 'cone', x: 760, y: 100 },
-      { type: 'tree', x: 50, y: 320 }, { type: 'tree', x: 910, y: 320 },
-      { type: 'rock', x: 300, y: 540 }, { type: 'rock', x: 660, y: 540 },
+      { type: 'tire', x: 130, y: 530 },
+      { type: 'tree', x: 50, y: 320 },
     ],
   }),
 ];
@@ -250,6 +279,7 @@ export const TRACKS = [
 export function getSurfaceAt(track, x, y) {
   for (let i = track.surfaces.length - 1; i >= 0; i--) {
     const s = track.surfaces[i];
+    if (s.type === 'GRASS' || s.type === 'DIRT') continue;
     if (s.shape === 'ellipse') {
       const dx = (x - s.cx) / s.rx;
       const dy = (y - s.cy) / s.ry;
@@ -258,5 +288,29 @@ export function getSurfaceAt(track, x, y) {
       return s.type;
     }
   }
+
+  if (track.roadShape === 'oval' || track.surfaces?.some((s) => s.shape === 'ellipse' && s.type === 'DIRT')) {
+    if (isOnOvalRoad(track, x, y)) return track.roadType || 'DIRT';
+  } else if (isOnWaypointRoad(track, x, y)) {
+    return track.roadType || 'DIRT';
+  }
+
   return 'GRASS';
+}
+
+export function getRoadPointsForMinimap(track) {
+  if (track.roadShape === 'oval' || track.surfaces?.some((s) => s.shape === 'ellipse' && s.type === 'DIRT')) {
+    const e = track.surfaces?.find((s) => s.shape === 'ellipse' && s.type === 'DIRT')
+      || { cx: 480, cy: 320, rx: 310, ry: 210 };
+    const roadW = track.roadWidth || 64;
+    const midRx = e.rx - roadW / 2;
+    const midRy = e.ry - roadW / 2 * (e.ry / e.rx);
+    const pts = [];
+    for (let i = 0; i <= 32; i++) {
+      const t = (i / 32) * Math.PI * 2;
+      pts.push({ x: e.cx + Math.cos(t) * midRx, y: e.cy + Math.sin(t) * midRy });
+    }
+    return pts;
+  }
+  return track.waypoints || [];
 }
