@@ -1,4 +1,4 @@
-import { SURFACE } from './utils.js';
+import { SURFACE } from './utils.js?v=3';
 
 function makeTrack(config) {
   return {

@@ -1,4 +1,4 @@
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=3';
 
 export class Renderer {
   constructor(ctx) {
