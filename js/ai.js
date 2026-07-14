@@ -1,4 +1,4 @@
-import { angleDiff, dist } from './utils.js?v=4';
+import { angleDiff, dist } from './utils.js?v=6';
 
 export class AIController {
   constructor(car, waypoints, skill = 1) {

@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=4';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=4';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=6';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=6';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -13,13 +13,13 @@ export class UI {
     this.overlay.innerHTML = `
       <div id="screen-menu" class="screen">
         <div class="title">Super Off-Road</div>
-        <div class="subtitle">Championship Edition</div>
+        <div class="subtitle">Championship Circuit</div>
         <button class="btn" id="btn-championship">Start Championship</button>
-        <button class="btn" id="btn-upgrades">Truck Upgrades</button>
+        <button class="btn" id="btn-upgrades">Upgrade Truck</button>
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>
         <div class="controls-hint">
-          ↑ / W — Accelerate &nbsp;|&nbsp; ↓ / S — Brake / Reverse<br>
-          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro Boost
+          ↑ / W — Gas &nbsp;|&nbsp; ↓ / S — Brake<br>
+          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>
@@ -54,17 +54,20 @@ export class UI {
       </div>
 
       <div id="race-hud" class="race-hud hidden">
-        <div class="hud-left hud-panel">
-          <div id="hud-track" class="track-name-hud"></div>
-          <div class="lap-display" id="hud-lap"></div>
-          <div id="hud-speed" class="speed-hud"></div>
-        </div>
-        <div class="hud-center hud-panel">
-          <div class="position-display" id="hud-position"></div>
-        </div>
-        <div class="hud-right hud-panel" style="align-items:flex-end">
-          <div class="nitro-label">NITRO</div>
-          <div class="nitro-bar-wrap"><div class="nitro-bar" id="hud-nitro"></div></div>
+        <div id="racer-bar" class="racer-bar"></div>
+        <div class="hud-row">
+          <div class="hud-left hud-panel">
+            <div id="hud-track" class="track-name-hud"></div>
+            <div class="lap-display" id="hud-lap"></div>
+            <div id="hud-speed" class="speed-hud"></div>
+          </div>
+          <div class="hud-center hud-panel">
+            <div class="position-display" id="hud-position"></div>
+          </div>
+          <div class="hud-right hud-panel">
+            <div class="nitro-label">NITRO</div>
+            <div class="nitro-bar-wrap"><div class="nitro-bar" id="hud-nitro"></div></div>
+          </div>
         </div>
       </div>
 
@@ -174,12 +177,24 @@ export class UI {
   }
 
   updateRaceHud(data) {
-    document.getElementById('hud-track').textContent = data.trackName;
-    document.getElementById('hud-lap').textContent = `LAP ${data.lap} / ${data.totalLaps}`;
-    document.getElementById('hud-position').textContent = `${this._ordinal(data.position)}`;
-    document.getElementById('hud-speed').textContent = `${Math.round(data.speed * 20)} KM/H`;
+    document.getElementById('hud-track').textContent = data.trackName.toUpperCase();
+    document.getElementById('hud-lap').textContent = `LAP ${data.lap}/${data.totalLaps}`;
+    document.getElementById('hud-position').textContent = this._ordinal(data.position).toUpperCase();
+    document.getElementById('hud-speed').textContent = `${Math.round(data.speed * 22)} MPH`;
     document.getElementById('hud-nitro').style.width =
       `${(data.nitro / data.nitroMax) * 100}%`;
+
+    const bar = document.getElementById('racer-bar');
+    if (data.racers) {
+      bar.innerHTML = data.racers.map((r) => `
+        <div class="racer-slot ${r.isPlayer ? 'player-slot' : ''}" style="border-color:${r.color}">
+          <span class="racer-color" style="background:${r.color}"></span>
+          <span class="racer-name">${r.name}</span>
+          <span class="racer-pos">${this._ordinal(r.position).toUpperCase()}</span>
+          <span class="racer-lap">L${r.lap}</span>
+        </div>
+      `).join('');
+    }
 
     const cd = document.getElementById('countdown');
     if (data.countdown > 0) {

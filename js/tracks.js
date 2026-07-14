@@ -1,4 +1,4 @@
-import { SURFACE } from './utils.js?v=4';
+import { SURFACE } from './utils.js?v=6';
 
 function makeTrack(config) {
   return {
@@ -19,40 +19,36 @@ export const TRACKS = [
     description: 'Learn the ropes on this classic oval track.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'DIRT', x: 180, y: 120, w: 600, h: 400 },
-      { type: 'MUD', x: 420, y: 280, w: 120, h: 80 },
+      { type: 'DIRT', shape: 'ellipse', cx: 480, cy: 320, rx: 310, ry: 210 },
+      { type: 'MUD', shape: 'ellipse', cx: 480, cy: 320, rx: 70, ry: 45 },
     ],
     walls: [
-      { x: 160, y: 100, w: 640, h: 20 },
-      { x: 160, y: 520, w: 640, h: 20 },
-      { x: 160, y: 100, w: 20, h: 440 },
-      { x: 780, y: 100, w: 20, h: 440 },
-      { x: 300, y: 260, w: 60, h: 20 },
-      { x: 600, y: 360, w: 60, h: 20 },
+      { x: 280, y: 240, w: 80, h: 24 },
+      { x: 600, y: 380, w: 80, h: 24 },
     ],
     checkpoints: [
-      { x: 480, y: 500, radius: 50 },
-      { x: 200, y: 300, radius: 50 },
-      { x: 760, y: 300, radius: 50 },
-      { x: 480, y: 130, radius: 50 },
+      { x: 480, y: 510, radius: 55 },
+      { x: 200, y: 320, radius: 55 },
+      { x: 760, y: 320, radius: 55 },
+      { x: 480, y: 130, radius: 55 },
     ],
     waypoints: [
-      { x: 480, y: 480 }, { x: 220, y: 400 }, { x: 200, y: 300 },
-      { x: 220, y: 200 }, { x: 480, y: 150 }, { x: 740, y: 200 },
-      { x: 760, y: 300 }, { x: 740, y: 400 }, { x: 480, y: 480 },
+      { x: 480, y: 490 }, { x: 250, y: 400 }, { x: 190, y: 320 },
+      { x: 250, y: 220 }, { x: 480, y: 140 }, { x: 710, y: 220 },
+      { x: 770, y: 320 }, { x: 710, y: 420 }, { x: 480, y: 490 },
     ],
     starts: [
-      { x: 440, y: 460, angle: -Math.PI / 2 },
-      { x: 460, y: 470, angle: -Math.PI / 2 },
-      { x: 480, y: 480, angle: -Math.PI / 2 },
-      { x: 500, y: 470, angle: -Math.PI / 2 },
+      { x: 430, y: 470, angle: -Math.PI / 2 },
+      { x: 455, y: 485, angle: -Math.PI / 2 },
+      { x: 480, y: 495, angle: -Math.PI / 2 },
+      { x: 505, y: 485, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'grandstand', x: 480, y: 70 },
-      { type: 'cone', x: 140, y: 140 }, { type: 'cone', x: 800, y: 140 },
-      { type: 'tire', x: 170, y: 530 }, { type: 'tire', x: 790, y: 530 },
-      { type: 'tree', x: 60, y: 200 }, { type: 'tree', x: 900, y: 200 },
-      { type: 'tree', x: 60, y: 450 }, { type: 'tree', x: 900, y: 450 },
+      { type: 'grandstand', x: 480, y: 70, scale: 1.3 },
+      { type: 'cone', x: 120, y: 160 }, { type: 'cone', x: 840, y: 160 },
+      { type: 'tire', x: 150, y: 540, scale: 1.2 }, { type: 'tire', x: 810, y: 540, scale: 1.2 },
+      { type: 'tree', x: 50, y: 250 }, { type: 'tree', x: 910, y: 250 },
+      { type: 'tree', x: 50, y: 420 }, { type: 'tree', x: 910, y: 420 },
     ],
   }),
 
@@ -248,7 +244,11 @@ export const TRACKS = [
 export function getSurfaceAt(track, x, y) {
   for (let i = track.surfaces.length - 1; i >= 0; i--) {
     const s = track.surfaces[i];
-    if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) {
+    if (s.shape === 'ellipse') {
+      const dx = (x - s.cx) / s.rx;
+      const dy = (y - s.cy) / s.ry;
+      if (dx * dx + dy * dy <= 1) return s.type;
+    } else if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) {
       return s.type;
     }
   }

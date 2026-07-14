@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=4';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=6';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -22,9 +22,9 @@ export class Car {
     this.finishTime = 0;
     this.raceTime = 0;
 
-    this.width = 26;
-    this.height = 38;
-    this.radius = 15;
+    this.width = 30;
+    this.height = 42;
+    this.radius = 16;
   }
 
   reset(x, y, angle) {
@@ -55,8 +55,8 @@ export class Car {
     if (this.isPlayer && input) {
       if (input.up) this.speed += accel;
       if (input.down) this.speed -= accel * 1.4;
-      if (input.left) this.angle -= turn * (0.5 + Math.abs(this.speed) * 0.15);
-      if (input.right) this.angle += turn * (0.5 + Math.abs(this.speed) * 0.15);
+      if (input.left) this.angle -= turn * (0.7 + Math.abs(this.speed) * 0.2);
+      if (input.right) this.angle += turn * (0.7 + Math.abs(this.speed) * 0.2);
 
       this.nitroActive = input.nitro && this.nitro > 0 && this.speed > 0.5;
       if (this.nitroActive) {
@@ -74,7 +74,7 @@ export class Car {
 
     const targetVx = Math.cos(this.angle) * this.speed;
     const targetVy = Math.sin(this.angle) * this.speed;
-    const drift = surf.name === 'track' || surf.name === 'mud' ? 0.14 : 0.22;
+    const drift = surf.name === 'track' ? 0.18 : surf.name === 'mud' ? 0.12 : 0.24;
     this.vx = this.vx * (1 - drift) + targetVx * drift;
     this.vy = this.vy * (1 - drift) + targetVy * drift;
 

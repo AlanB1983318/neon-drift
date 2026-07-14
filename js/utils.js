@@ -2,21 +2,21 @@ export const CANVAS_W = 960;
 export const CANVAS_H = 640;
 
 export const SURFACE = {
-  DIRT: { color: '#d4b06a', detail: '#a08040', friction: 0.96, maxMult: 1.0, name: 'track' },
-  GRASS: { color: '#4a9a42', detail: '#357830', friction: 0.92, maxMult: 0.65, name: 'grass' },
-  MUD: { color: '#7a5030', detail: '#4a3018', friction: 0.85, maxMult: 0.45, name: 'mud' },
-  ASPHALT: { color: '#707070', detail: '#505050', friction: 0.97, maxMult: 1.1, name: 'boost' },
-  WATER: { color: '#4a90c8', detail: '#2a6098', friction: 0.7, maxMult: 0.3, name: 'water' },
+  DIRT: { color: '#c8a858', detail: '#a08038', friction: 0.94, maxMult: 1.0, name: 'track' },
+  GRASS: { color: '#4a9a40', detail: '#2d7028', friction: 0.90, maxMult: 0.6, name: 'grass' },
+  MUD: { color: '#7a5030', detail: '#4a3018', friction: 0.82, maxMult: 0.4, name: 'mud' },
+  ASPHALT: { color: '#808080', detail: '#606060', friction: 0.97, maxMult: 1.15, name: 'boost' },
+  WATER: { color: '#4a88b8', detail: '#2a5888', friction: 0.65, maxMult: 0.25, name: 'water' },
 };
 
 export const UPGRADE_COSTS = [0, 200, 400, 700, 1100, 1600];
 export const MAX_UPGRADE_LEVEL = 5;
 
 export const TRUCK_COLORS = [
-  { body: '#e83838', trim: '#cc2020', dark: '#991818', wheel: '#1a1a1a', name: 'Red Racer' },
-  { body: '#3868e8', trim: '#2048cc', dark: '#1030a0', wheel: '#1a1a1a', name: 'Blue Bolt' },
-  { body: '#e8c820', trim: '#cca800', dark: '#a08000', wheel: '#1a1a1a', name: 'Yellow Thunder' },
-  { body: '#38b058', trim: '#209040', dark: '#107030', wheel: '#1a1a1a', name: 'Green Machine' },
+  { body: '#e83030', trim: '#c01818', dark: '#901010', accent: '#ff8080', wheel: '#111', name: 'RED' },
+  { body: '#3060e0', trim: '#1840c0', dark: '#102890', accent: '#80a0ff', wheel: '#111', name: 'BLUE' },
+  { body: '#e8c818', trim: '#c0a000', dark: '#907800', accent: '#ffe060', wheel: '#111', name: 'YELLOW' },
+  { body: '#30b050', trim: '#189038', dark: '#106820', accent: '#70e090', wheel: '#111', name: 'GREEN' },
 ];
 
 export const LAPS_PER_RACE = 3;

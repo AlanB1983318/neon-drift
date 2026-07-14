@@ -1,10 +1,10 @@
-import { Car } from './car.js?v=4';
-import { AIController } from './ai.js?v=4';
-import { Renderer } from './renderer.js?v=4';
-import { AudioEngine } from './audio.js?v=4';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=4';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=4';
-import { TRUCK_COLORS, LAPS_PER_RACE, CANVAS_W, CANVAS_H } from './utils.js?v=4';
+import { Car } from './car.js?v=6';
+import { AIController } from './ai.js?v=6';
+import { Renderer } from './renderer.js?v=6';
+import { AudioEngine } from './audio.js?v=6';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=6';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=6';
+import { TRUCK_COLORS, LAPS_PER_RACE, CANVAS_W, CANVAS_H } from './utils.js?v=6';
 
 export const GameState = {
   MENU: 'menu',
@@ -30,6 +30,7 @@ export class Game {
     this.cars = [];
     this.aiControllers = [];
     this.camera = { x: 0, y: 0 };
+    this.zoom = 2.2;
     this.input = { up: false, down: false, left: false, right: false, nitro: false };
     this.keys = {};
 
@@ -141,10 +142,8 @@ export class Game {
   _updateCamera() {
     const player = this.cars[0];
     if (!player) return;
-    this.camera.x = player.x - CANVAS_W / 2;
-    this.camera.y = player.y - CANVAS_H / 2;
-    this.camera.x = Math.max(0, Math.min(CANVAS_W, this.camera.x));
-    this.camera.y = Math.max(0, Math.min(CANVAS_H, this.camera.y));
+    this.camera.x = player.x;
+    this.camera.y = player.y;
   }
 
   _getPositions() {
@@ -240,8 +239,8 @@ export class Game {
       if (Math.abs(car.speed) > 1.5) {
         const trailColor = car.nitroActive ? '#aa6633' : '#665544';
         this.skidTrails.push({
-          x: car.x - this.camera.x,
-          y: car.y - this.camera.y,
+          x: car.x,
+          y: car.y,
           w: car.nitroActive ? 4 : 2.5,
           h: car.nitroActive ? 2 : 1.5,
           angle: car.angle,
@@ -302,10 +301,15 @@ export class Game {
   _renderRace() {
     this.renderer.clear();
 
-    this.ctx.save();
-    this.ctx.translate(-this.camera.x, -this.camera.y);
-    this.renderer.drawTrack(this.track);
+    const player = this.cars[0];
+    const zoom = this.zoom;
 
+    this.ctx.save();
+    this.ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+    this.ctx.scale(zoom, zoom);
+    this.ctx.translate(-player.x, -player.y);
+
+    this.renderer.drawTrack(this.track);
     this.renderer.drawSkidMarks(this.skidTrails);
     this.renderer.drawParticles(this.particles, { x: 0, y: 0 });
 
@@ -315,9 +319,15 @@ export class Game {
     }
     this.ctx.restore();
 
-    const player = this.cars[0];
     const positions = this._getPositions();
     const playerPos = positions.indexOf(player) + 1;
+    const racers = positions.map((car, i) => ({
+      name: car.isPlayer ? 'YOU' : car.color.name,
+      position: i + 1,
+      color: car.color.body,
+      isPlayer: car.isPlayer,
+      lap: Math.min(car.lap + 1, LAPS_PER_RACE),
+    }));
 
     this.ui.updateRaceHud({
       position: playerPos,
@@ -328,6 +338,7 @@ export class Game {
       speed: Math.abs(player.speed),
       trackName: this.track.name,
       countdown: this.countdown > 0 ? Math.ceil(this.countdown / 60) : 0,
+      racers,
     });
 
     this.renderer.drawMinimap(this.track, this.cars, CANVAS_W - 130, CANVAS_H - 100, 120, 90);
