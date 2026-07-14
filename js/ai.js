@@ -1,0 +1,58 @@
+import { angleDiff, dist } from './utils.js';
+
+export class AIController {
+  constructor(car, waypoints, skill = 1) {
+    this.car = car;
+    this.waypoints = waypoints;
+    this.wpIndex = 0;
+    this.skill = skill;
+    this.reactionDelay = 0;
+  }
+
+  reset() {
+    this.wpIndex = 0;
+    this.reactionDelay = 0;
+  }
+
+  update(track) {
+    const car = this.car;
+    if (car.finished) return;
+
+    const wps = this.waypoints;
+    let target = wps[this.wpIndex];
+    let d = dist(car.x, car.y, target.x, target.y);
+
+    if (d < 40) {
+      this.wpIndex = (this.wpIndex + 1) % wps.length;
+      target = wps[this.wpIndex];
+      d = dist(car.x, car.y, target.x, target.y);
+    }
+
+    const targetAngle = Math.atan2(target.y - car.y, target.x - car.x);
+    const diff = angleDiff(car.angle, targetAngle);
+
+    const steer = Math.max(-1, Math.min(1, diff * 2.5 * this.skill));
+    const surface = this._getSurface(track, car.x, car.y);
+    const isSlow = surface === 'mud' || surface === 'water' || surface === 'grass';
+
+    let throttle = 1.0 * this.skill;
+    if (Math.abs(diff) > 1.2) throttle = 0.3;
+    else if (Math.abs(diff) > 0.6) throttle = 0.6;
+    if (isSlow) throttle *= 0.85;
+
+    const variance = (Math.random() - 0.5) * 0.08 * (2 - this.skill);
+    throttle = Math.max(0.2, Math.min(1, throttle + variance));
+
+    car.applyAI(steer, throttle, surface, 1, true);
+  }
+
+  _getSurface(track, x, y) {
+    for (let i = track.surfaces.length - 1; i >= 0; i--) {
+      const s = track.surfaces[i];
+      if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) {
+        return s.type;
+      }
+    }
+    return 'grass';
+  }
+}
