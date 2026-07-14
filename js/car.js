@@ -119,25 +119,34 @@ export class Car {
 
   _updateDrift(input, surface, maxSpd) {
     if (!this.isPlayer || !input) return;
-    const canDrift = (surface === 'DIRT' || surface === 'ASPHALT') && Math.abs(this.speed) > 2.5;
-    const steering = (input.left ? -1 : 0) + (input.right ? 1 : 0);
+    const canDrift = (surface === 'DIRT' || surface === 'ASPHALT') && Math.abs(this.speed) > 2;
+    const steering = (input.left && !input.right ? -1 : 0) + (input.right && !input.left ? 1 : 0);
 
-    if (canDrift && steering !== 0 && input.up) {
+    if (canDrift && steering !== 0 && (input.up || !input.down)) {
       if (this.driftSteer === steering) {
-        this.driftCharge = Math.min(90, this.driftCharge + 1);
+        this.driftCharge = Math.min(90, this.driftCharge + 1.4);
       } else {
         this.driftSteer = steering;
         this.driftCharge = 0;
       }
-      if (this.driftCharge >= 75 && this.driftBoostTimer <= 0) {
-        this.driftBoostTimer = 50;
+      if (this.driftCharge >= 50 && this.driftBoostTimer <= 0) {
+        this.driftBoostTimer = 55;
         this.driftCharge = 0;
-        this.speed = Math.min(maxSpd * 1.2, this.speed + 2.5);
+        this.speed = Math.min(maxSpd * 1.2, this.speed + 3);
       }
     } else {
       this.driftCharge = Math.max(0, this.driftCharge - 2);
       if (steering === 0) this.driftSteer = 0;
     }
+  }
+
+  _playerTraction(surface) {
+    const surf = SURFACE[surface] || SURFACE.DIRT;
+    if (surf.name === 'track') return 0.4;
+    if (surf.name === 'boost') return 0.42;
+    if (surf.name === 'grass') return 0.26;
+    if (surf.name === 'mud') return 0.18;
+    return 0.22;
   }
 
   update(input, surface, dt, raceStarted) {
@@ -156,14 +165,23 @@ export class Car {
     const turn = this.stats.turnRate * (this.shrinkTimer > 0 ? 1.15 : 1);
 
     if (this.isPlayer && input) {
-      if (input.up) this.speed += accel;
-      if (input.down) this.speed -= accel * 1.4;
-      if (input.left) this.angle -= turn * (0.7 + Math.abs(this.speed) * 0.2);
-      if (input.right) this.angle += turn * (0.7 + Math.abs(this.speed) * 0.2);
+      if (input.down) {
+        this.speed -= accel * 1.1;
+      } else if (input.up) {
+        this.speed += accel;
+      } else {
+        this.speed += accel * 0.7;
+      }
 
-      this.nitroActive = input.nitro && this.nitro > 0 && this.speed > 0.5;
+      const steer = (input.left && !input.right ? -1 : 0) + (input.right && !input.left ? 1 : 0);
+      const turnMult = 1.15 + Math.abs(this.speed) * 0.08;
+      if (steer !== 0) {
+        this.angle += steer * turn * turnMult;
+      }
+
+      this.nitroActive = input.nitro && this.nitro > 0 && this.speed > 0.3;
       if (this.nitroActive) {
-        this.nitro -= 0.8;
+        this.nitro -= 0.7;
         this.speed += accel * this.stats.nitroPower;
       }
 
@@ -171,15 +189,15 @@ export class Car {
     }
 
     this.speed *= surf.friction;
-    this.speed = clamp(this.speed, -maxSpd * 0.4, maxSpd);
+    this.speed = clamp(this.speed, -maxSpd * 0.35, maxSpd);
 
     if (this.nitroActive || this.boostTimer > 0 || this.starTimer > 0) {
-      this.speed = clamp(this.speed, -maxSpd * 0.4, maxSpd * 1.35);
+      this.speed = clamp(this.speed, -maxSpd * 0.35, maxSpd * 1.35);
     }
 
     const targetVx = Math.cos(this.angle) * this.speed;
     const targetVy = Math.sin(this.angle) * this.speed;
-    const drift = surf.name === 'track' ? 0.18 : surf.name === 'mud' ? 0.12 : 0.24;
+    const drift = this.isPlayer ? this._playerTraction(surface) : (surf.name === 'track' ? 0.18 : surf.name === 'mud' ? 0.12 : 0.24);
     this.vx = this.vx * (1 - drift) + targetVx * drift;
     this.vy = this.vy * (1 - drift) + targetVy * drift;
 
@@ -219,6 +237,7 @@ export class Car {
 
   collideWalls(walls) {
     if (this.starTimer > 0) return;
+    const bounce = this.isPlayer ? 0.78 : 0.6;
     for (const wall of walls) {
       const hit = this._circleRect(this.x, this.y, this.radius * this.getScale(), wall);
       if (hit) {
@@ -226,10 +245,10 @@ export class Car {
         this.y += hit.ny * hit.overlap;
         const dot = this.vx * hit.nx + this.vy * hit.ny;
         if (dot < 0) {
-          this.vx -= dot * hit.nx * 1.4;
-          this.vy -= dot * hit.ny * 1.4;
+          this.vx -= dot * hit.nx * 1.2;
+          this.vy -= dot * hit.ny * 1.2;
         }
-        this.speed *= 0.6;
+        this.speed *= bounce;
       }
     }
   }

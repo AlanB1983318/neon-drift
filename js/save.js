@@ -25,9 +25,9 @@ export function writeSave(data) {
 
 export function getStats(upgrades) {
   return {
-    maxSpeed: 4.5 + upgrades.speed * 0.6,
-    accel: 0.08 + upgrades.accel * 0.015,
-    turnRate: 0.045 + upgrades.handling * 0.008,
+    maxSpeed: 4.8 + upgrades.speed * 0.65,
+    accel: 0.1 + upgrades.accel * 0.018,
+    turnRate: 0.058 + upgrades.handling * 0.01,
     nitroMax: 100 + upgrades.nitro * 25,
     nitroPower: 1.4 + upgrades.nitro * 0.15,
   };

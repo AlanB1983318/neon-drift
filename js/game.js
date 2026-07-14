@@ -54,10 +54,10 @@ export class Game {
   _bindInput() {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'KeyE'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'KeyE', 'KeyQ', 'KeyX', 'KeyC'].includes(e.code)) {
         e.preventDefault();
       }
-      if (e.code === 'ShiftLeft' || e.code === 'KeyE') {
+      if (e.code === 'ShiftLeft' || e.code === 'KeyE' || e.code === 'KeyQ' || e.code === 'KeyX') {
         if (!this.itemKeyDown && this.state === GameState.RACE && this.raceStarted) {
           this._usePlayerItem();
         }
@@ -69,7 +69,7 @@ export class Game {
     });
     window.addEventListener('keyup', (e) => {
       this.keys[e.code] = false;
-      if (e.code === 'ShiftLeft' || e.code === 'KeyE') {
+      if (e.code === 'ShiftLeft' || e.code === 'KeyE' || e.code === 'KeyQ' || e.code === 'KeyX') {
         this.itemKeyDown = false;
       }
     });
@@ -80,7 +80,7 @@ export class Game {
     this.input.down = this.keys['ArrowDown'] || this.keys['KeyS'];
     this.input.left = this.keys['ArrowLeft'] || this.keys['KeyA'];
     this.input.right = this.keys['ArrowRight'] || this.keys['KeyD'];
-    this.input.nitro = this.keys['Space'];
+    this.input.nitro = this.keys['Space'] || this.keys['KeyC'];
 
     if (this.countdown > 0 && this.countdown <= 90 && this.input.up) {
       this.launchBoostQueued = true;
@@ -115,6 +115,11 @@ export class Game {
     this.items.init(this.track);
 
     const playerStats = getStats(this.save.upgrades);
+    const boostedPlayerStats = {
+      ...playerStats,
+      turnRate: playerStats.turnRate * 1.15,
+      accel: playerStats.accel * 1.1,
+    };
     const aiSkills = [0.88, 0.82, 0.78];
     const aiStatMods = [
       { speed: 1, accel: 1, handling: 1, nitro: 0 },
@@ -128,7 +133,7 @@ export class Game {
     for (let i = 0; i < 4; i++) {
       const start = this.track.starts[i];
       const isPlayer = i === 0;
-      let stats = playerStats;
+      let stats = isPlayer ? boostedPlayerStats : playerStats;
 
       if (!isPlayer) {
         const mod = aiStatMods[i - 1];

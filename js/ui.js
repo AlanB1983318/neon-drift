@@ -18,9 +18,9 @@ export class UI {
         <button class="btn" id="btn-upgrades">Upgrade Truck</button>
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>
         <div class="controls-hint">
-          ↑ / W — Gas &nbsp;|&nbsp; ↓ / S — Brake<br>
-          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro<br>
-          SHIFT / E — Use Item &nbsp;|&nbsp; Drift on turns for boost!
+          Auto-accelerates — steer with ← → or A D<br>
+          ↓ / S — Brake &nbsp;|&nbsp; ↑ / W — Extra gas<br>
+          SPACE / C — Nitro &nbsp;|&nbsp; SHIFT / E / Q — Use Item
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>
