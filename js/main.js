@@ -1,7 +1,7 @@
-import { Game, GameState } from './game.js?v=9';
-import { UI } from './ui.js?v=9';
-import { loadSave, resetSave } from './save.js?v=9';
-import { TRACKS } from './tracks.js?v=9';
+import { Game, GameState } from './game.js?v=10';
+import { UI } from './ui.js?v=10';
+import { loadSave, resetSave } from './save.js?v=10';
+import { TRACKS } from './tracks.js?v=10';
 
 const container = document.getElementById('game-container');
 const overlay = document.getElementById('ui-overlay');
