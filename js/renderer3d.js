@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=19';
-import { getRoadPointsForMinimap } from './tracks.js?v=19';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=20';
+import { getRoadPointsForMinimap } from './tracks.js?v=20';
 import {
   buildItemBoxGroup,
   buildCoinGroup,
   buildShellGroup,
   buildBananaGroup,
-} from './itemMeshes.js?v=19';
+} from './itemMeshes.js?v=20';
 import {
   buildGrassBase,
   buildRoad,
@@ -16,7 +16,7 @@ import {
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=19';
+} from './trackbuilder.js?v=20';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
