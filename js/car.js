@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=25';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=26';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -258,30 +258,33 @@ export class Car {
   }
 
   collideCars(others) {
+    const myR = this.radius * this.getScale();
     for (const other of others) {
       if (other === this) continue;
       const d = dist(this.x, this.y, other.x, other.y);
-      const minD = (this.radius + other.radius) * (this.getScale() + other.getScale()) * 0.92;
-      if (d < minD && d > 0) {
-        if (this.starTimer > 0 && other.starTimer <= 0) {
-          other.spinOut(60);
-          other.speed *= 0.4;
-          continue;
-        }
-        if (other.starTimer > 0 && this.starTimer <= 0) {
-          this.spinOut(60);
-          this.speed *= 0.4;
-          continue;
-        }
-        const nx = (this.x - other.x) / d;
-        const ny = (this.y - other.y) / d;
-        const overlap = minD - d;
-        const push = overlap * 0.3;
-        this.x += nx * push * 0.5;
-        this.y += ny * push * 0.5;
-        other.x -= nx * push * 0.5;
-        other.y -= ny * push * 0.5;
+      const otherR = other.radius * other.getScale();
+      const minD = myR + otherR;
+      if (d >= minD || d <= 0) continue;
+
+      if (this.starTimer > 0 && other.starTimer <= 0) {
+        other.spinOut(60);
+        other.speed *= 0.4;
+        continue;
       }
+      if (other.starTimer > 0 && this.starTimer <= 0) {
+        this.spinOut(60);
+        this.speed *= 0.4;
+        continue;
+      }
+
+      const nx = (this.x - other.x) / d;
+      const ny = (this.y - other.y) / d;
+      const overlap = minD - d;
+      const push = overlap * 0.25;
+      this.x += nx * push * 0.5;
+      this.y += ny * push * 0.5;
+      other.x -= nx * push * 0.5;
+      other.y -= ny * push * 0.5;
     }
   }
 

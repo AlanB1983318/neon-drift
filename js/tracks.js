@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp } from './utils.js?v=25';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=25';
+import { SURFACE, dist, clamp } from './utils.js?v=26';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=26';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;

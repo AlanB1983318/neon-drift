@@ -1,4 +1,4 @@
-import { dist, clamp } from './utils.js?v=25';
+import { dist, clamp } from './utils.js?v=26';
 
 export const ITEMS = {
   BOOST: { name: 'Turbo Mushroom', icon: '🍄', color: '#ff4444' },

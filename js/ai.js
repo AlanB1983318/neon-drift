@@ -1,5 +1,5 @@
-import { angleDiff, dist } from './utils.js?v=25';
-import { getSurfaceAt } from './tracks.js?v=25';
+import { angleDiff, dist } from './utils.js?v=26';
+import { getSurfaceAt } from './tracks.js?v=26';
 
 export class AIController {
   constructor(car, waypoints, skill = 1) {
