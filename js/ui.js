@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=21';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=21';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=22';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=22';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -20,7 +20,8 @@ export class UI {
         <div class="controls-hint">
           Auto-accelerates — steer with ← → or A D<br>
           ↓ / S — Brake &nbsp;|&nbsp; ↑ / W — Extra gas<br>
-          SPACE / C — Nitro &nbsp;|&nbsp; X — Use Item
+          SPACE / C — Nitro &nbsp;|&nbsp; X — Use Item<br>
+          ESC — Quit race
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>

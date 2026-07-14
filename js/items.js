@@ -1,4 +1,4 @@
-import { dist, clamp } from './utils.js?v=21';
+import { dist, clamp } from './utils.js?v=22';
 
 export const ITEMS = {
   BOOST: { name: 'Turbo Mushroom', icon: '🍄', color: '#ff4444' },
@@ -28,7 +28,7 @@ export function rollItem(position) {
     if (r < 0.35) return 'BANANA';
     if (r < 0.58) return 'SHELL';
     if (r < 0.74) return 'BOOST';
-    return 'BANANA';
+    return 'LIGHTNING';
   }
   if (r < 0.45) return 'BANANA';
   if (r < 0.75) return 'SHELL';
@@ -68,7 +68,7 @@ export class ItemSystem {
     this.frame = 0;
   }
 
-  update(cars, getPosition) {
+  update(cars, getPosition, walls = []) {
     this.frame++;
     for (const box of this.boxes) {
       box.spin += 0.06;
@@ -92,7 +92,7 @@ export class ItemSystem {
       this._tryPickupCoin(car);
     }
 
-    this._updateProjectiles(cars);
+    this._updateProjectiles(cars, walls);
     this._updateTraps(cars);
   }
 
@@ -165,7 +165,19 @@ export class ItemSystem {
     return true;
   }
 
-  _updateProjectiles(cars) {
+  _hitsWall(x, y, walls, pad = 8) {
+    for (const wall of walls) {
+      if (
+        x >= wall.x - pad && x <= wall.x + wall.w + pad
+        && y >= wall.y - pad && y <= wall.y + wall.h + pad
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  _updateProjectiles(cars, walls = []) {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.x += Math.cos(p.angle) * p.speed;
@@ -182,7 +194,10 @@ export class ItemSystem {
           break;
         }
       }
-      if (hit || p.life <= 0 || p.x < 0 || p.x > 960 || p.y < 0 || p.y > 640) {
+      if (
+        hit || p.life <= 0 || p.x < 0 || p.x > 960 || p.y < 0 || p.y > 640
+        || this._hitsWall(p.x, p.y, walls)
+      ) {
         this.projectiles.splice(i, 1);
       }
     }

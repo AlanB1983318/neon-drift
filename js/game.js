@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=21';
-import { AIController } from './ai.js?v=21';
-import { Renderer3D } from './renderer3d.js?v=21';
-import { AudioEngine } from './audio.js?v=21';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=21';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=21';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=21';
-import { ItemSystem, ITEMS } from './items.js?v=21';
+import { Car } from './car.js?v=22';
+import { AIController } from './ai.js?v=22';
+import { Renderer3D } from './renderer3d.js?v=22';
+import { AudioEngine } from './audio.js?v=22';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=22';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=22';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=22';
+import { ItemSystem, ITEMS } from './items.js?v=22';
 
 export const GameState = {
   MENU: 'menu',
@@ -33,6 +33,7 @@ export class Game {
     this.input = { up: false, down: false, left: false, right: false, nitro: false, item: false };
     this.keys = {};
     this.itemKeyDown = false;
+    this.escapeKeyDown = false;
 
     this.countdown = 0;
     this.lastCountdownNum = -1;
@@ -63,6 +64,13 @@ export class Game {
         }
         this.itemKeyDown = true;
       }
+      if (e.code === 'Escape' && this.state === GameState.RACE) {
+        e.preventDefault();
+        if (!this.escapeKeyDown) {
+          this._quitRace();
+        }
+        this.escapeKeyDown = true;
+      }
       if (this.state === GameState.RACE && !this.audio.ctx) {
         this.audio.init();
       }
@@ -71,6 +79,9 @@ export class Game {
       this.keys[e.code] = false;
       if (e.code === 'KeyX') {
         this.itemKeyDown = false;
+      }
+      if (e.code === 'Escape') {
+        this.escapeKeyDown = false;
       }
     });
   }
@@ -85,6 +96,13 @@ export class Game {
     if (this.countdown > 0 && this.countdown <= 90 && this.input.up) {
       this.launchBoostQueued = true;
     }
+  }
+
+  _quitRace() {
+    if (!confirm('Quit this race and return to track select?')) return;
+    this.audio.stopEngine();
+    this.raceFinished = true;
+    this.showChampionship();
   }
 
   _usePlayerItem() {
@@ -240,7 +258,7 @@ export class Game {
       this.items.aiUseItem(ai.car, this.cars, (c) => this._getPosition(c));
     }
 
-    this.items.update(this.cars, (c) => this._getPosition(c));
+    this.items.update(this.cars, (c) => this._getPosition(c), this.track.walls);
 
     if (player) {
       this.audio.updateEngine(Math.abs(player.speed), player.nitroActive || player.starTimer > 0);

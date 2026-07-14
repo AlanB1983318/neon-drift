@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=21';
+import { clamp, dist, SURFACE, LAPS_PER_RACE, angleDiff } from './utils.js?v=22';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -39,6 +39,7 @@ export class Car {
     this.driftSteer = 0;
     this.coins = 0;
     this.launchBoost = 0;
+    this.checkpointCooldown = 0;
   }
 
   reset(x, y, angle) {
@@ -66,6 +67,7 @@ export class Car {
     this.driftBoostTimer = 0;
     this.coins = 0;
     this.launchBoost = 0;
+    this.checkpointCooldown = 0;
   }
 
   spinOut(frames = 75) {
@@ -293,17 +295,31 @@ export class Car {
 
   checkCheckpoint(checkpoints) {
     if (this.finished) return;
+    if (this.checkpointCooldown > 0) {
+      this.checkpointCooldown--;
+      return;
+    }
+
     const cp = checkpoints[this.checkpoint];
     if (!cp) return;
-    if (dist(this.x, this.y, cp.x, cp.y) < cp.radius) {
-      this.checkpoint++;
-      if (this.checkpoint >= checkpoints.length) {
-        this.checkpoint = 0;
-        this.lap++;
-        if (this.lap >= LAPS_PER_RACE) {
-          this.finished = true;
-          this.finishTime = this.raceTime;
-        }
+    if (dist(this.x, this.y, cp.x, cp.y) >= cp.radius) return;
+
+    const speed = Math.hypot(this.vx, this.vy);
+    if (speed > 0.8 && checkpoints.length > 1) {
+      const next = checkpoints[(this.checkpoint + 1) % checkpoints.length];
+      const exitAngle = Math.atan2(next.y - cp.y, next.x - cp.x);
+      const moveAngle = Math.atan2(this.vy, this.vx);
+      if (Math.abs(angleDiff(moveAngle, exitAngle)) > 1.4) return;
+    }
+
+    this.checkpoint++;
+    this.checkpointCooldown = 45;
+    if (this.checkpoint >= checkpoints.length) {
+      this.checkpoint = 0;
+      this.lap++;
+      if (this.lap >= LAPS_PER_RACE) {
+        this.finished = true;
+        this.finishTime = this.raceTime;
       }
     }
   }
