@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp } from './utils.js?v=28';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=28';
+import { SURFACE, dist, clamp } from './utils.js?v=29';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=29';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -158,9 +158,6 @@ export const TRACKS = [
       { x: 60, y: 560, w: 820, h: 20 },
       { x: 60, y: 40, w: 20, h: 540 },
       { x: 860, y: 40, w: 20, h: 540 },
-      { x: 450, y: 40, w: 20, h: 55 },
-      { x: 450, y: 175, w: 20, h: 255 },
-      { x: 450, y: 490, w: 20, h: 70 },
     ],
     checkpointIndices: [0, 2, 4, 6, 7],
     checkpointRadii: [50, 50, 50, 50, 50],
