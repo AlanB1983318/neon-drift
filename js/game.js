@@ -1,10 +1,10 @@
-import { Car } from './car.js?v=6';
-import { AIController } from './ai.js?v=6';
-import { Renderer } from './renderer.js?v=6';
-import { AudioEngine } from './audio.js?v=6';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=6';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=6';
-import { TRUCK_COLORS, LAPS_PER_RACE, CANVAS_W, CANVAS_H } from './utils.js?v=6';
+import { Car } from './car.js?v=7';
+import { AIController } from './ai.js?v=7';
+import { Renderer3D } from './renderer3d.js?v=7';
+import { AudioEngine } from './audio.js?v=7';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=7';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=7';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=7';
 
 export const GameState = {
   MENU: 'menu',
@@ -15,10 +15,9 @@ export const GameState = {
 };
 
 export class Game {
-  constructor(canvas, ui) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.renderer = new Renderer(this.ctx);
+  constructor(container, ui) {
+    this.container = container;
+    this.renderer = new Renderer3D(container);
     this.audio = new AudioEngine();
     this.ui = ui;
 
@@ -29,8 +28,6 @@ export class Game {
 
     this.cars = [];
     this.aiControllers = [];
-    this.camera = { x: 0, y: 0 };
-    this.zoom = 2.2;
     this.input = { up: false, down: false, left: false, right: false, nitro: false };
     this.keys = {};
 
@@ -39,25 +36,11 @@ export class Game {
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.skidTrails = [];
     this.particles = [];
 
     this._bindInput();
-    this._setupCanvasScale();
     this.lastTime = 0;
     requestAnimationFrame((t) => this.loop(t));
-  }
-
-  _setupCanvasScale() {
-    const resize = () => {
-      const maxW = window.innerWidth - 40;
-      const maxH = window.innerHeight - 40;
-      const scale = Math.min(maxW / CANVAS_W, maxH / CANVAS_H, 1);
-      this.canvas.style.width = `${CANVAS_W * scale}px`;
-      this.canvas.style.height = `${CANVAS_H * scale}px`;
-    };
-    window.addEventListener('resize', resize);
-    resize();
   }
 
   setSave(save) {
@@ -96,8 +79,9 @@ export class Game {
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.skidTrails = [];
     this.particles = [];
+
+    this.renderer.buildTrack(this.track);
 
     const playerStats = getStats(this.save.upgrades);
     const aiSkills = [0.88, 0.82, 0.78];
@@ -127,6 +111,7 @@ export class Game {
 
       const car = new Car(start.x, start.y, start.angle, stats, TRUCK_COLORS[i], isPlayer, i + 1);
       this.cars.push(car);
+      this.renderer.createTruck(car);
 
       if (!isPlayer) {
         const ai = new AIController(car, this.track.waypoints, aiSkills[i - 1]);
@@ -137,13 +122,6 @@ export class Game {
     this.audio.init();
     this.ui.hideAllScreens();
     this.ui.showRaceHud();
-  }
-
-  _updateCamera() {
-    const player = this.cars[0];
-    if (!player) return;
-    this.camera.x = player.x;
-    this.camera.y = player.y;
   }
 
   _getPositions() {
@@ -157,46 +135,10 @@ export class Game {
     });
   }
 
-  _spawnNitroParticles(car) {
-    const colors = ['#ffaa00', '#ff6600', '#ffcc44'];
-    for (let i = 0; i < 3; i++) {
-      this.particles.push({
-        x: car.x - Math.cos(car.angle) * 18 + (Math.random() - 0.5) * 6,
-        y: car.y - Math.sin(car.angle) * 18 + (Math.random() - 0.5) * 6,
-        vx: -Math.cos(car.angle) * (2 + Math.random() * 3),
-        vy: -Math.sin(car.angle) * (2 + Math.random() * 3),
-        size: 2 + Math.random() * 3,
-        life: 1,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      });
-    }
-  }
-
-  _spawnDustParticles(car) {
+  _spawnDust(car) {
     const surface = getSurfaceAt(this.track, car.x, car.y);
-    const dustColor = surface === 'MUD' ? '#5c3a1a' : surface === 'GRASS' ? '#3a6a2a' : '#a08050';
-    for (let i = 0; i < 2; i++) {
-      this.particles.push({
-        x: car.x - Math.cos(car.angle) * 12 + (Math.random() - 0.5) * 10,
-        y: car.y - Math.sin(car.angle) * 12 + (Math.random() - 0.5) * 10,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        size: 2 + Math.random() * 4,
-        life: 0.8,
-        color: dustColor,
-      });
-    }
-  }
-
-  _updateParticles() {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= 0.04;
-      p.size *= 0.97;
-      if (p.life <= 0) this.particles.splice(i, 1);
-    }
+    const colors = { MUD: '#5c3a1a', GRASS: '#3a6a2a', DIRT: '#a08050', WATER: '#4a88b8', ASPHALT: '#888888' };
+    this.renderer.spawnDust(car.x, car.y, colors[surface] || '#a08050');
   }
 
   _updateRace() {
@@ -230,30 +172,17 @@ export class Game {
       car.collideCars(this.cars);
       car.checkCheckpoint(this.track.checkpoints);
 
-      if (car.nitroActive) {
-        this._spawnNitroParticles(car);
-      } else if (Math.abs(car.speed) > 2) {
-        this._spawnDustParticles(car);
-      }
-
       if (Math.abs(car.speed) > 1.5) {
-        const trailColor = car.nitroActive ? '#aa6633' : '#665544';
-        this.skidTrails.push({
-          x: car.x,
-          y: car.y,
-          w: car.nitroActive ? 4 : 2.5,
-          h: car.nitroActive ? 2 : 1.5,
-          angle: car.angle,
-          alpha: car.nitroActive ? 0.5 : 0.3,
-          color: trailColor,
-        });
+        this._spawnDust(car);
+      }
+      if (car.nitroActive && Math.random() < 0.5) {
+        this.renderer.spawnDust(
+          car.x - Math.cos(car.angle) * 20,
+          car.y - Math.sin(car.angle) * 20,
+          '#ff6600'
+        );
       }
     }
-
-    if (this.skidTrails.length > 400) this.skidTrails.splice(0, this.skidTrails.length - 400);
-    for (const t of this.skidTrails) t.alpha *= 0.97;
-
-    this._updateParticles();
 
     for (const ai of this.aiControllers) {
       ai.update(this.track);
@@ -262,8 +191,6 @@ export class Game {
     if (player) {
       this.audio.updateEngine(Math.abs(player.speed), player.nitroActive);
     }
-
-    this._updateCamera();
 
     if (!this.raceFinished && this.cars.every((c) => c.finished)) {
       this.raceFinished = true;
@@ -299,25 +226,8 @@ export class Game {
   }
 
   _renderRace() {
-    this.renderer.clear();
-
     const player = this.cars[0];
-    const zoom = this.zoom;
-
-    this.ctx.save();
-    this.ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
-    this.ctx.scale(zoom, zoom);
-    this.ctx.translate(-player.x, -player.y);
-
-    this.renderer.drawTrack(this.track);
-    this.renderer.drawSkidMarks(this.skidTrails);
-    this.renderer.drawParticles(this.particles, { x: 0, y: 0 });
-
-    const sorted = this._getPositions();
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      this.renderer.drawCar(sorted[i], { x: 0, y: 0 });
-    }
-    this.ctx.restore();
+    this.renderer.render(this.track, this.cars, player);
 
     const positions = this._getPositions();
     const playerPos = positions.indexOf(player) + 1;
@@ -340,8 +250,6 @@ export class Game {
       countdown: this.countdown > 0 ? Math.ceil(this.countdown / 60) : 0,
       racers,
     });
-
-    this.renderer.drawMinimap(this.track, this.cars, CANVAS_W - 130, CANVAS_H - 100, 120, 90);
   }
 
   loop(timestamp) {

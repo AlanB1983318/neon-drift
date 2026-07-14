@@ -1,4 +1,5 @@
-import { angleDiff, dist } from './utils.js?v=6';
+import { angleDiff, dist } from './utils.js?v=7';
+import { getSurfaceAt } from './tracks.js?v=7';
 
 export class AIController {
   constructor(car, waypoints, skill = 1) {
@@ -32,7 +33,7 @@ export class AIController {
     const diff = angleDiff(car.angle, targetAngle);
 
     const steer = Math.max(-1, Math.min(1, diff * 2.5 * this.skill));
-    const surface = this._getSurface(track, car.x, car.y);
+    const surface = getSurfaceAt(track, car.x, car.y);
     const isSlow = surface === 'mud' || surface === 'water' || surface === 'grass';
 
     let throttle = 1.0 * this.skill;
@@ -44,15 +45,5 @@ export class AIController {
     throttle = Math.max(0.2, Math.min(1, throttle + variance));
 
     car.applyAI(steer, throttle, surface, 1, true);
-  }
-
-  _getSurface(track, x, y) {
-    for (let i = track.surfaces.length - 1; i >= 0; i--) {
-      const s = track.surfaces[i];
-      if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) {
-        return s.type;
-      }
-    }
-    return 'grass';
   }
 }

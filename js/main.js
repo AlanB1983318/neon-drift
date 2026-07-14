@@ -1,9 +1,9 @@
-import { Game, GameState } from './game.js?v=6';
-import { UI } from './ui.js?v=6';
-import { loadSave, resetSave } from './save.js?v=6';
-import { TRACKS } from './tracks.js?v=6';
+import { Game, GameState } from './game.js?v=7';
+import { UI } from './ui.js?v=7';
+import { loadSave, resetSave } from './save.js?v=7';
+import { TRACKS } from './tracks.js?v=7';
 
-const canvas = document.getElementById('game-canvas');
+const container = document.getElementById('game-container');
 const overlay = document.getElementById('ui-overlay');
 
 let save = loadSave();
@@ -34,6 +34,6 @@ const ui = new UI(overlay, {
   },
 });
 
-game = new Game(canvas, ui);
+game = new Game(container, ui);
 game.setSave(save);
 ui.showMainMenu(save);

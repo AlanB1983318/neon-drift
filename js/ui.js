@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=6';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=6';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=7';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=7';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -13,7 +13,7 @@ export class UI {
     this.overlay.innerHTML = `
       <div id="screen-menu" class="screen">
         <div class="title">Super Off-Road</div>
-        <div class="subtitle">Championship Circuit</div>
+        <div class="subtitle">3D Championship</div>
         <button class="btn" id="btn-championship">Start Championship</button>
         <button class="btn" id="btn-upgrades">Upgrade Truck</button>
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>

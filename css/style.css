@@ -22,6 +22,17 @@ body {
   border: 3px solid #ff8800;
 }
 
+#game-container {
+  position: relative;
+  width: 960px;
+  height: 640px;
+  overflow: hidden;
+}
+
+#game-container canvas {
+  display: block;
+}
+
 #game-canvas {
   display: block;
   background: #4a8a3a;
