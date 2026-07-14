@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=18';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=19';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -257,7 +257,7 @@ export class Car {
     for (const other of others) {
       if (other === this) continue;
       const d = dist(this.x, this.y, other.x, other.y);
-      const minD = (this.radius + other.radius) * (this.getScale() + other.getScale()) * 0.5;
+      const minD = (this.radius + other.radius) * (this.getScale() + other.getScale()) * 0.92;
       if (d < minD && d > 0) {
         if (this.starTimer > 0 && other.starTimer <= 0) {
           other.spinOut(60);
@@ -272,12 +272,11 @@ export class Car {
         const nx = (this.x - other.x) / d;
         const ny = (this.y - other.y) / d;
         const overlap = minD - d;
-        this.x += nx * overlap * 0.5;
-        this.y += ny * overlap * 0.5;
-        other.x -= nx * overlap * 0.5;
-        other.y -= ny * overlap * 0.5;
-        this.speed *= 0.85;
-        other.speed *= 0.85;
+        const push = overlap * 0.3;
+        this.x += nx * push * 0.5;
+        this.y += ny * push * 0.5;
+        other.x -= nx * push * 0.5;
+        other.y -= ny * push * 0.5;
       }
     }
   }
