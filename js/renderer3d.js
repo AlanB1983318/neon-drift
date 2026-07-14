@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=22';
-import { getRoadPointsForMinimap } from './tracks.js?v=22';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=23';
+import { getRoadPointsForMinimap } from './tracks.js?v=23';
 import {
   buildItemBoxGroup,
   buildCoinGroup,
   buildShellGroup,
   buildBananaGroup,
-} from './itemMeshes.js?v=22';
+} from './itemMeshes.js?v=23';
 import {
   buildGrassBase,
   buildRoad,
@@ -16,7 +16,7 @@ import {
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=22';
+} from './trackbuilder.js?v=23';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -153,14 +153,34 @@ export class Renderer3D {
   }
 
   _setupResize() {
+    const app = document.getElementById('app');
     const resize = () => {
-      const maxW = window.innerWidth - 40;
-      const maxH = window.innerHeight - 40;
-      const s = Math.min(maxW / CANVAS_W, maxH / CANVAS_H, 1);
-      this.renderer.domElement.style.width = `${CANVAS_W * s}px`;
-      this.renderer.domElement.style.height = `${CANVAS_H * s}px`;
+      const mobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 900;
+      const pad = mobile ? 0 : 40;
+      const touchBar = mobile ? 96 : 0;
+      const maxW = window.innerWidth - pad;
+      const maxH = window.innerHeight - pad - touchBar;
+      const s = Math.min(maxW / CANVAS_W, maxH / CANVAS_H, mobile ? 2 : 1);
+      const w = CANVAS_W * s;
+      const h = CANVAS_H * s;
+      this.renderer.domElement.style.width = `${w}px`;
+      this.renderer.domElement.style.height = `${h}px`;
+      if (this.minimap) {
+        const mmScale = mobile ? 0.75 : 1;
+        this.minimap.style.transform = `scale(${mmScale})`;
+        this.minimap.style.transformOrigin = 'bottom right';
+        this.minimap.style.right = mobile ? '8px' : '20px';
+        this.minimap.style.bottom = mobile ? `${touchBar + 6}px` : '20px';
+      }
+      if (app && mobile) {
+        app.style.width = '100%';
+        app.style.height = '100%';
+      }
     };
     window.addEventListener('resize', resize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', resize);
+    }
     resize();
   }
 

@@ -1,7 +1,7 @@
-import { Game, GameState } from './game.js?v=22';
-import { UI } from './ui.js?v=22';
-import { loadSave, resetSave } from './save.js?v=22';
-import { TRACKS } from './tracks.js?v=22';
+import { Game, GameState } from './game.js?v=23';
+import { UI } from './ui.js?v=23';
+import { loadSave, resetSave } from './save.js?v=23';
+import { TRACKS } from './tracks.js?v=23';
 
 const container = document.getElementById('game-container');
 const overlay = document.getElementById('ui-overlay');
@@ -31,7 +31,11 @@ const ui = new UI(overlay, {
     game.showChampionship();
   },
   onStartRace: (trackIndex) => {
+    game.audio.init();
     game.startRace(trackIndex);
+  },
+  onInteract: () => {
+    game.audio.init();
   },
   onReset: () => {
     if (confirm('Reset all progress? This cannot be undone.')) {

@@ -2,6 +2,13 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
 }
 
 body {
@@ -10,8 +17,12 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: "Segoe UI", Tahoma, sans-serif;
   overflow: hidden;
+  position: fixed;
+  inset: 0;
+  width: 100%;
 }
 
 #app {
@@ -27,6 +38,9 @@ body {
   width: 960px;
   height: 640px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #game-container canvas {
@@ -471,4 +485,171 @@ body {
 .track-btn.locked {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+  pointer-events: auto;
+  z-index: 12;
+}
+
+.touch-controls.active {
+  display: flex;
+}
+
+.touch-steer {
+  display: flex;
+  gap: 10px;
+}
+
+.touch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.touch-btn {
+  min-width: 64px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 2px solid rgba(255, 136, 0, 0.85);
+  border-radius: 14px;
+  background: rgba(20, 12, 4, 0.82);
+  color: #fff;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  touch-action: none;
+  user-select: none;
+}
+
+.touch-btn.steer {
+  min-width: 72px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.touch-btn:active,
+.touch-btn.pressed {
+  background: rgba(255, 136, 0, 0.35);
+  transform: scale(0.96);
+}
+
+.touch-btn.nitro {
+  border-color: #ff6600;
+  color: #ffcc66;
+}
+
+.touch-btn.item {
+  border-color: #ffdd22;
+  color: #ffee88;
+}
+
+.touch-btn.brake {
+  border-color: #cc4444;
+  color: #ffaaaa;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  body {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  #app {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 100vw;
+    border: none;
+    box-shadow: none;
+  }
+
+  #game-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .title {
+    font-size: 2.4rem;
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    min-width: min(300px, 88vw);
+    padding: 16px 28px;
+  }
+
+  .stats-panel,
+  .track-select {
+    min-width: min(440px, 92vw);
+    max-width: 92vw;
+    padding: 20px 18px;
+  }
+
+  .controls-hint {
+    font-size: 0.78rem;
+    padding: 0 12px;
+  }
+
+  .position-display {
+    font-size: 2.4rem;
+  }
+
+  .hud-row {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .hud-panel {
+    padding: 6px 10px;
+  }
+
+  .hud-right {
+    display: none;
+  }
+
+  .nitro-bar-wrap,
+  .drift-bar-wrap,
+  .item-slot {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .racer-bar {
+    padding: 4px 6px;
+    gap: 3px;
+  }
+
+  .racer-slot {
+    font-size: 0.62rem;
+    padding: 3px 4px;
+    gap: 3px;
+  }
+
+  .countdown {
+    font-size: 4.5rem;
+  }
+
+  .touch-controls.active {
+    display: flex;
+  }
 }

@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=22';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=22';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=23';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=23';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -17,7 +17,7 @@ export class UI {
         <button class="btn" id="btn-championship">Start Championship</button>
         <button class="btn" id="btn-upgrades">Upgrade Truck</button>
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>
-        <div class="controls-hint">
+        <div class="controls-hint" id="controls-hint">
           Auto-accelerates — steer with ← → or A D<br>
           ↓ / S — Brake &nbsp;|&nbsp; ↑ / W — Extra gas<br>
           SPACE / C — Nitro &nbsp;|&nbsp; X — Use Item<br>
@@ -82,18 +82,91 @@ export class UI {
 
       <div id="lightning-flash" class="lightning-flash hidden"></div>
       <div id="countdown" class="countdown hidden"></div>
+
+      <div id="touch-controls" class="touch-controls">
+        <div class="touch-steer">
+          <button type="button" class="touch-btn steer" data-touch="left" aria-label="Steer left">◀</button>
+          <button type="button" class="touch-btn steer" data-touch="right" aria-label="Steer right">▶</button>
+        </div>
+        <div class="touch-actions">
+          <button type="button" class="touch-btn brake" data-touch="brake" aria-label="Brake">Brake</button>
+          <button type="button" class="touch-btn nitro" data-touch="nitro" aria-label="Nitro">Nitro</button>
+          <button type="button" class="touch-btn item" data-touch="item" aria-label="Use item">Item</button>
+        </div>
+      </div>
     `;
 
+    this.touchState = { left: false, right: false, brake: false, nitro: false };
+    this.touchHandlers = null;
     this._bindEvents();
+    this._setupTouchControls();
+  }
+
+  isMobile() {
+    return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 900;
+  }
+
+  initTouchControls(handlers) {
+    this.touchHandlers = handlers;
+  }
+
+  _setupTouchControls() {
+    const panel = document.getElementById('touch-controls');
+    const press = (key, active) => {
+      if (key === 'item') {
+        if (active && this.touchHandlers?.onItem) this.touchHandlers.onItem();
+        return;
+      }
+      this.touchState[key] = active;
+      this.touchHandlers?.onChange?.({ ...this.touchState });
+    };
+
+    for (const btn of panel.querySelectorAll('[data-touch]')) {
+      const key = btn.dataset.touch;
+      const down = (e) => {
+        e.preventDefault();
+        btn.classList.add('pressed');
+        this.touchHandlers?.onInteract?.();
+        press(key, true);
+      };
+      const up = (e) => {
+        e.preventDefault();
+        btn.classList.remove('pressed');
+        if (key !== 'item') press(key, false);
+      };
+      btn.addEventListener('touchstart', down, { passive: false });
+      btn.addEventListener('touchend', up, { passive: false });
+      btn.addEventListener('touchcancel', up, { passive: false });
+      btn.addEventListener('mousedown', down);
+      btn.addEventListener('mouseup', up);
+      btn.addEventListener('mouseleave', up);
+    }
+  }
+
+  _setTouchVisible(visible) {
+    const panel = document.getElementById('touch-controls');
+    panel.classList.toggle('active', visible && this.isMobile());
   }
 
   _bindEvents() {
-    document.getElementById('btn-championship').onclick = () => this.callbacks.onChampionship();
-    document.getElementById('btn-upgrades').onclick = () => this.callbacks.onUpgrades();
+    const bootAudio = () => {
+      if (this.callbacks.onInteract) this.callbacks.onInteract();
+    };
+    document.getElementById('btn-championship').onclick = () => {
+      bootAudio();
+      this.callbacks.onChampionship();
+    };
+    document.getElementById('btn-upgrades').onclick = () => {
+      bootAudio();
+      this.callbacks.onUpgrades();
+    };
     document.getElementById('btn-reset').onclick = () => this.callbacks.onReset();
     document.getElementById('btn-champ-back').onclick = () => this.callbacks.onMenu();
     document.getElementById('btn-upgrades-back').onclick = () => this.callbacks.onMenu();
-    document.getElementById('btn-start-race').onclick = () => this._startSelectedRace();
+    document.getElementById('btn-start-race').onclick = () => {
+      bootAudio();
+      this._startSelectedRace();
+    };
     document.getElementById('btn-results-continue').onclick = () => {
       if (this.callbacks.onResultsContinue) {
         this.callbacks.onResultsContinue();
@@ -107,11 +180,20 @@ export class UI {
     this.overlay.querySelectorAll('.screen').forEach((s) => s.classList.add('hidden'));
     document.getElementById('race-hud').classList.add('hidden');
     document.getElementById('countdown').classList.add('hidden');
+    this._setTouchVisible(false);
+    this.touchState = { left: false, right: false, brake: false, nitro: false };
+    this.touchHandlers?.onChange?.({ ...this.touchState });
   }
 
   showMainMenu(save) {
     this.hideAllScreens();
     document.getElementById('screen-menu').classList.remove('hidden');
+    const hint = document.getElementById('controls-hint');
+    if (hint) {
+      hint.innerHTML = this.isMobile()
+        ? 'Touch controls appear during races.<br>◀ ▶ Steer &nbsp;|&nbsp; Brake / Nitro / Item buttons'
+        : 'Auto-accelerates — steer with ← → or A D<br>↓ / S — Brake &nbsp;|&nbsp; ↑ / W — Extra gas<br>SPACE / C — Nitro &nbsp;|&nbsp; X — Use Item<br>ESC — Quit race';
+    }
     document.getElementById('menu-credits').textContent = `Cash: $${save.credits}`;
     if (save.championshipsWon > 0) {
       document.getElementById('menu-credits').textContent +=
@@ -190,6 +272,7 @@ export class UI {
 
   showRaceHud() {
     document.getElementById('race-hud').classList.remove('hidden');
+    this._setTouchVisible(true);
   }
 
   updateRaceHud(data) {

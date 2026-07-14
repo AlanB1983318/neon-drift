@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=22';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=23';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;

@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=22';
-import { AIController } from './ai.js?v=22';
-import { Renderer3D } from './renderer3d.js?v=22';
-import { AudioEngine } from './audio.js?v=22';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=22';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=22';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=22';
-import { ItemSystem, ITEMS } from './items.js?v=22';
+import { Car } from './car.js?v=23';
+import { AIController } from './ai.js?v=23';
+import { Renderer3D } from './renderer3d.js?v=23';
+import { AudioEngine } from './audio.js?v=23';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=23';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=23';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=23';
+import { ItemSystem, ITEMS } from './items.js?v=23';
 
 export const GameState = {
   MENU: 'menu',
@@ -32,6 +32,7 @@ export class Game {
     this.aiControllers = [];
     this.input = { up: false, down: false, left: false, right: false, nitro: false, item: false };
     this.keys = {};
+    this.touch = { left: false, right: false, brake: false, nitro: false };
     this.itemKeyDown = false;
     this.escapeKeyDown = false;
 
@@ -44,6 +45,17 @@ export class Game {
     this.launchBoostQueued = false;
 
     this._bindInput();
+    this.ui.initTouchControls({
+      onChange: (touch) => {
+        this.touch = { ...touch };
+      },
+      onItem: () => {
+        if (this.state === GameState.RACE && this.raceStarted) this._usePlayerItem();
+      },
+      onInteract: () => {
+        if (this.state === GameState.RACE && !this.audio.ctx) this.audio.init();
+      },
+    });
     this.lastTime = 0;
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -84,16 +96,21 @@ export class Game {
         this.escapeKeyDown = false;
       }
     });
+
+    document.addEventListener('touchmove', (e) => {
+      if (this.state === GameState.RACE) e.preventDefault();
+    }, { passive: false });
   }
 
   _readInput() {
     this.input.up = this.keys['ArrowUp'] || this.keys['KeyW'];
-    this.input.down = this.keys['ArrowDown'] || this.keys['KeyS'];
-    this.input.left = this.keys['ArrowLeft'] || this.keys['KeyA'];
-    this.input.right = this.keys['ArrowRight'] || this.keys['KeyD'];
-    this.input.nitro = this.keys['Space'] || this.keys['KeyC'];
+    this.input.down = this.keys['ArrowDown'] || this.keys['KeyS'] || this.touch.brake;
+    this.input.left = this.keys['ArrowLeft'] || this.keys['KeyA'] || this.touch.left;
+    this.input.right = this.keys['ArrowRight'] || this.keys['KeyD'] || this.touch.right;
+    this.input.nitro = this.keys['Space'] || this.keys['KeyC'] || this.touch.nitro;
 
-    if (this.countdown > 0 && this.countdown <= 90 && this.input.up) {
+    const launchTap = this.touch.nitro || this.touch.left || this.touch.right;
+    if (this.countdown > 0 && this.countdown <= 90 && (this.input.up || launchTap)) {
       this.launchBoostQueued = true;
     }
   }
