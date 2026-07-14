@@ -3,12 +3,15 @@ import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=26';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
+  const checkpoints = config.checkpointIndices
+    ? checkpointsAlongWaypoints(waypoints, config.checkpointIndices, config.checkpointRadii)
+    : config.checkpoints;
   return {
     name: config.name,
     description: config.description,
     surfaces: config.surfaces,
     walls: config.walls,
-    checkpoints: config.checkpoints,
+    checkpoints,
     waypoints,
     starts: config.starts,
     decorations: config.decorations || [],
@@ -20,6 +23,14 @@ function makeTrack(config) {
     roadClosed: config.roadClosed !== false,
     roadShape: config.roadShape || null,
   };
+}
+
+function checkpointsAlongWaypoints(waypoints, indices, radii = []) {
+  return indices.map((i, idx) => ({
+    x: waypoints[i].x,
+    y: waypoints[i].y,
+    radius: radii[idx] ?? 55,
+  }));
 }
 
 function distToSegment(px, py, ax, ay, bx, by) {
@@ -74,12 +85,7 @@ export const TRACKS = [
       { x: 280, y: 240, w: 80, h: 24 },
       { x: 600, y: 380, w: 80, h: 24 },
     ],
-    checkpoints: [
-      { x: 480, y: 510, radius: 55 },
-      { x: 200, y: 320, radius: 55 },
-      { x: 760, y: 320, radius: 55 },
-      { x: 480, y: 130, radius: 55 },
-    ],
+    checkpointIndices: [0, 2, 4, 6],
     waypoints: [
       { x: 480, y: 490 }, { x: 250, y: 400 }, { x: 190, y: 320 },
       { x: 250, y: 220 }, { x: 480, y: 140 }, { x: 710, y: 220 },
@@ -119,12 +125,7 @@ export const TRACKS = [
       { x: 600, y: 360, w: 20, h: 80 },
       { x: 340, y: 360, w: 280, h: 20 },
     ],
-    checkpoints: [
-      { x: 480, y: 520, radius: 55 },
-      { x: 160, y: 320, radius: 50 },
-      { x: 480, y: 160, radius: 55 },
-      { x: 800, y: 320, radius: 50 },
-    ],
+    checkpointIndices: [0, 2, 4, 6],
     waypoints: [
       { x: 480, y: 500 }, { x: 180, y: 450 }, { x: 160, y: 320 },
       { x: 180, y: 180 }, { x: 480, y: 140 }, { x: 780, y: 180 },
@@ -160,13 +161,8 @@ export const TRACKS = [
       { x: 880, y: 40, w: 20, h: 280 }, { x: 880, y: 300, w: 20, h: 280 },
       { x: 460, y: 40, w: 20, h: 240 }, { x: 460, y: 360, w: 20, h: 240 },
     ],
-    checkpoints: [
-      { x: 260, y: 500, radius: 50 },
-      { x: 700, y: 500, radius: 50 },
-      { x: 700, y: 140, radius: 50 },
-      { x: 260, y: 140, radius: 50 },
-      { x: 480, y: 320, radius: 45 },
-    ],
+    checkpointIndices: [0, 2, 4, 6, 7],
+    checkpointRadii: [50, 50, 50, 50, 45],
     waypoints: [
       { x: 260, y: 480 }, { x: 260, y: 340 }, { x: 260, y: 160 },
       { x: 480, y: 160 }, { x: 700, y: 160 }, { x: 700, y: 340 },
@@ -203,12 +199,8 @@ export const TRACKS = [
       { x: 400, y: 200, w: 20, h: 60 },
       { x: 540, y: 380, w: 20, h: 60 },
     ],
-    checkpoints: [
-      { x: 140, y: 320, radius: 50 },
-      { x: 420, y: 320, radius: 50 },
-      { x: 820, y: 320, radius: 50 },
-      { x: 500, y: 220, radius: 45 },
-    ],
+    checkpointIndices: [0, 2, 5, 7],
+    checkpointRadii: [50, 50, 50, 45],
     waypoints: [
       { x: 140, y: 320 }, { x: 300, y: 320 }, { x: 420, y: 320 },
       { x: 560, y: 300 }, { x: 720, y: 320 }, { x: 820, y: 320 },
@@ -248,13 +240,8 @@ export const TRACKS = [
       { x: 360, y: 140, w: 20, h: 80 },
       { x: 580, y: 140, w: 20, h: 80 },
     ],
-    checkpoints: [
-      { x: 480, y: 510, radius: 55 },
-      { x: 180, y: 320, radius: 50 },
-      { x: 480, y: 130, radius: 55 },
-      { x: 780, y: 320, radius: 50 },
-      { x: 480, y: 320, radius: 40 },
-    ],
+    checkpointIndices: [0, 2, 5, 7],
+    checkpointRadii: [55, 50, 55, 50],
     waypoints: [
       { x: 480, y: 490 }, { x: 200, y: 420 }, { x: 180, y: 320 },
       { x: 200, y: 200 }, { x: 400, y: 150 }, { x: 560, y: 150 },

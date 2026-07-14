@@ -318,20 +318,20 @@ export class Car {
 
     if (!inZone) return;
 
-    if (Math.abs(this.speed) > 0.5 && checkpoints.length > 1) {
+    if (Math.abs(this.speed) > 0.3 && checkpoints.length > 1) {
       const next = checkpoints[(this.checkpoint + 1) % checkpoints.length];
       const exitAngle = Math.atan2(next.y - cp.y, next.x - cp.x);
       const forward = Math.cos(this.angle) * Math.cos(exitAngle) + Math.sin(this.angle) * Math.sin(exitAngle);
-      if (forward < 0.25) return;
+      if (forward < -0.3) return;
     }
 
-    this.checkpoint++;
-    this.checkpointCooldown = 30;
-    if (this.checkpoint >= checkpoints.length) {
-      this.checkpoint = 0;
+    const passedIndex = this.checkpoint;
+    this.checkpoint = (this.checkpoint + 1) % checkpoints.length;
+    this.checkpointCooldown = 25;
+
+    // Lap completes when crossing the start/finish line (checkpoint 0).
+    if (passedIndex === 0 && this.leftStartZone) {
       this.lap++;
-      const startCp = checkpoints[0];
-      this.leftStartZone = dist(this.x, this.y, startCp.x, startCp.y) >= startCp.radius;
       if (this.lap >= LAPS_PER_RACE) {
         this.finished = true;
         this.finishTime = this.raceTime;

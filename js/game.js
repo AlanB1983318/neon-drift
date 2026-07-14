@@ -288,6 +288,11 @@ export class Game {
     if (this.raceFinished) return;
 
     const player = this.cars[0];
+    if (player && player.lap >= LAPS_PER_RACE && !player.finished) {
+      player.finished = true;
+      player.finishTime = player.raceTime;
+    }
+
     const playerDone = player?.finished;
     const allDone = this.cars.every((c) => c.finished);
 
