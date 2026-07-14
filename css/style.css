@@ -5,27 +5,26 @@
 }
 
 body {
-  background: radial-gradient(ellipse at center, #0d0d2b 0%, #050510 60%, #000008 100%);
+  background: linear-gradient(180deg, #1a1a2e 0%, #2d1f0e 50%, #1a1008 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  font-family: "Rajdhani", "Segoe UI", sans-serif;
+  font-family: "Segoe UI", Tahoma, sans-serif;
   overflow: hidden;
 }
 
 #app {
   position: relative;
   box-shadow:
-    0 0 60px rgba(0, 255, 255, 0.15),
-    0 0 120px rgba(255, 0, 255, 0.08),
-    inset 0 0 1px rgba(0, 255, 255, 0.3);
-  border: 1px solid rgba(0, 255, 255, 0.25);
+    0 0 30px rgba(255, 120, 0, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.6);
+  border: 3px solid #ff8800;
 }
 
 #game-canvas {
   display: block;
-  background: #050510;
+  background: #4a8a3a;
 }
 
 #ui-overlay {
@@ -41,25 +40,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(5, 5, 20, 0.88);
-  backdrop-filter: blur(12px);
+  background: rgba(20, 12, 4, 0.9);
   pointer-events: auto;
   gap: 16px;
-}
-
-#ui-overlay .screen::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 255, 255, 0.015) 2px,
-      rgba(0, 255, 255, 0.015) 4px
-    );
-  pointer-events: none;
 }
 
 #ui-overlay .screen.hidden {
@@ -67,118 +50,85 @@ body {
 }
 
 .title {
-  font-family: "Orbitron", sans-serif;
-  font-size: 3rem;
-  font-weight: 900;
-  letter-spacing: 6px;
+  font-family: "Bangers", "Impact", sans-serif;
+  font-size: 3.5rem;
+  font-weight: 400;
+  letter-spacing: 4px;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #0088ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6));
-  animation: titlePulse 3s ease-in-out infinite;
-}
-
-@keyframes titlePulse {
-  0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6)); }
-  50% { filter: drop-shadow(0 0 35px rgba(255, 0, 255, 0.8)); }
+  color: #ff8800;
+  text-shadow:
+    3px 3px 0 #aa4400,
+    0 0 20px rgba(255, 136, 0, 0.5);
 }
 
 .subtitle {
-  color: rgba(0, 255, 255, 0.6);
-  font-size: 1.1rem;
-  letter-spacing: 4px;
+  color: #ffcc66;
+  font-size: 1.2rem;
+  letter-spacing: 6px;
   text-transform: uppercase;
   margin-bottom: 24px;
+  font-weight: bold;
 }
 
 .btn {
   padding: 14px 48px;
-  font-family: "Orbitron", sans-serif;
-  font-size: 0.95rem;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  border: 1px solid rgba(0, 255, 255, 0.6);
-  background: rgba(0, 40, 80, 0.4);
-  color: #00ffff;
+  border: 2px solid #ff8800;
+  background: linear-gradient(180deg, #cc6600 0%, #994400 100%);
+  color: #fff;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   min-width: 300px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05);
-}
-
-.btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.15), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.4s;
+  box-shadow: 0 4px 0 #662200, 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .btn:hover {
-  background: rgba(0, 60, 120, 0.5);
-  border-color: #00ffff;
-  box-shadow: 0 0 25px rgba(0, 255, 255, 0.4), inset 0 0 30px rgba(0, 255, 255, 0.1);
-  transform: scale(1.02);
+  background: linear-gradient(180deg, #ee7700 0%, #bb5500 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #662200, 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
-.btn:hover::after {
-  transform: translateX(100%);
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #662200;
 }
 
 .btn:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 4px 0 #662200;
 }
 
 .btn-secondary {
-  border-color: rgba(255, 0, 255, 0.4);
-  color: #ff66ff;
-  background: rgba(60, 0, 60, 0.3);
+  border-color: #888;
+  background: linear-gradient(180deg, #555 0%, #333 100%);
+  box-shadow: 0 4px 0 #222, 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .btn-secondary:hover {
-  border-color: #ff00ff;
-  box-shadow: 0 0 25px rgba(255, 0, 255, 0.3);
+  background: linear-gradient(180deg, #666 0%, #444 100%);
 }
 
 .stats-panel {
-  background: rgba(10, 10, 40, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  background: rgba(40, 25, 10, 0.95);
+  border: 2px solid #ff8800;
   padding: 28px 36px;
-  color: #cceeff;
+  color: #ffeedd;
   min-width: 440px;
-  box-shadow:
-    0 0 30px rgba(0, 255, 255, 0.1),
-    inset 0 0 40px rgba(0, 100, 200, 0.05);
-  position: relative;
-}
-
-.stats-panel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 20%;
-  right: 20%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .stats-panel h3 {
-  font-family: "Orbitron", sans-serif;
-  color: #00ffff;
+  color: #ff8800;
   margin-bottom: 16px;
   text-align: center;
-  letter-spacing: 3px;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  letter-spacing: 2px;
+  font-size: 1.1rem;
 }
 
 .upgrade-row {
@@ -188,63 +138,54 @@ body {
   margin-bottom: 14px;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 136, 0, 0.2);
 }
 
 .upgrade-row span {
   flex: 1;
-  letter-spacing: 1px;
 }
 
 .upgrade-row .level {
-  color: #ff66ff;
-  font-family: "Orbitron", sans-serif;
+  color: #ffcc00;
   font-weight: bold;
   min-width: 80px;
   text-align: center;
-  font-size: 0.9rem;
 }
 
 .upgrade-row button {
   padding: 6px 18px;
-  font-family: "Orbitron", sans-serif;
-  font-size: 0.75rem;
-  background: rgba(0, 60, 100, 0.4);
-  border: 1px solid rgba(0, 255, 255, 0.5);
-  color: #00ffff;
+  font-size: 0.85rem;
+  background: #cc6600;
+  border: 1px solid #ff8800;
+  color: #fff;
   cursor: pointer;
   font-weight: bold;
-  letter-spacing: 1px;
   transition: all 0.15s;
 }
 
 .upgrade-row button:hover:not(:disabled) {
-  background: rgba(0, 100, 160, 0.5);
-  box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+  background: #ee7700;
 }
 
 .upgrade-row button:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .credits {
   text-align: center;
-  font-family: "Orbitron", sans-serif;
-  color: #00ffff;
-  font-size: 1.2rem;
+  color: #ffcc00;
+  font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 16px;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
 }
 
 .controls-hint {
-  color: rgba(150, 200, 255, 0.5);
+  color: rgba(255, 220, 180, 0.6);
   font-size: 0.85rem;
   text-align: center;
   line-height: 1.8;
   margin-top: 8px;
-  letter-spacing: 1px;
 }
 
 .race-hud {
@@ -259,16 +200,13 @@ body {
   pointer-events: none;
   font-weight: 600;
   color: #fff;
-  font-family: "Rajdhani", sans-serif;
 }
 
 .hud-panel {
-  background: rgba(5, 10, 30, 0.65);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 255, 255, 0.25);
+  background: rgba(20, 12, 4, 0.8);
+  border: 2px solid #ff8800;
   padding: 8px 14px;
-  border-radius: 2px;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hud-left, .hud-right {
@@ -282,61 +220,50 @@ body {
 }
 
 .position-display {
-  font-family: "Orbitron", sans-serif;
-  font-size: 2.8rem;
-  font-weight: 900;
-  color: #00ffff;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+  font-family: "Bangers", "Impact", sans-serif;
+  font-size: 3rem;
+  color: #ffcc00;
+  text-shadow: 2px 2px 0 #aa4400;
 }
 
 .lap-display {
   font-size: 1.1rem;
-  color: rgba(200, 220, 255, 0.8);
-  letter-spacing: 2px;
+  color: #ffeedd;
+  letter-spacing: 1px;
 }
 
 .track-name-hud {
-  font-family: "Orbitron", sans-serif;
-  font-size: 0.8rem;
-  color: #ff66ff;
-  letter-spacing: 2px;
+  font-size: 0.85rem;
+  color: #ff8800;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  font-weight: bold;
 }
 
 .speed-hud {
   font-size: 0.85rem;
-  color: rgba(0, 255, 255, 0.6);
-  letter-spacing: 1px;
+  color: #ffcc66;
 }
 
 .nitro-label {
-  font-family: "Orbitron", sans-serif;
-  font-size: 0.7rem;
-  color: #ff00ff;
+  font-size: 0.75rem;
+  color: #ff6600;
   letter-spacing: 2px;
+  font-weight: bold;
 }
 
 .nitro-bar-wrap {
   width: 170px;
-  height: 10px;
-  background: rgba(20, 0, 40, 0.8);
-  border: 1px solid rgba(255, 0, 255, 0.4);
+  height: 12px;
+  background: #331a00;
+  border: 2px solid #ff6600;
   margin-top: 4px;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
 .nitro-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
-  background-size: 200% 100%;
-  animation: nitroFlow 1.5s linear infinite;
-  box-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
+  background: linear-gradient(90deg, #ff4400, #ffaa00, #ff4400);
   transition: width 0.1s;
-}
-
-@keyframes nitroFlow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
 }
 
 .countdown {
@@ -345,20 +272,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Orbitron", sans-serif;
-  font-size: 7rem;
-  font-weight: 900;
-  color: #00ffff;
-  text-shadow:
-    0 0 30px rgba(0, 255, 255, 0.9),
-    0 0 60px rgba(255, 0, 255, 0.5);
+  font-family: "Bangers", "Impact", sans-serif;
+  font-size: 8rem;
+  color: #ffcc00;
+  text-shadow: 4px 4px 0 #aa4400;
   pointer-events: none;
-  animation: countdownPulse 0.8s ease-in-out infinite;
-}
-
-@keyframes countdownPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.85; }
 }
 
 .results-table {
@@ -371,21 +289,18 @@ body {
 .results-table td {
   padding: 10px 18px;
   text-align: left;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
-  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 136, 0, 0.2);
 }
 
 .results-table th {
-  font-family: "Orbitron", sans-serif;
-  color: #ff66ff;
+  color: #ff8800;
   font-size: 0.85rem;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 
 .results-table .player-row {
-  color: #00ffff;
+  color: #ffcc00;
   font-weight: bold;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
 }
 
 .track-select {
@@ -399,28 +314,28 @@ body {
 .track-btn {
   padding: 12px 22px;
   text-align: left;
-  font-family: "Rajdhani", sans-serif;
   font-size: 1rem;
-  background: rgba(10, 15, 40, 0.6);
-  border: 1px solid rgba(0, 255, 255, 0.15);
-  color: rgba(180, 200, 255, 0.7);
+  background: rgba(40, 25, 10, 0.8);
+  border: 1px solid rgba(255, 136, 0, 0.3);
+  color: #ddbb99;
   cursor: pointer;
-  letter-spacing: 1px;
   transition: all 0.15s;
 }
 
 .track-btn:hover:not(.locked) {
-  border-color: rgba(0, 255, 255, 0.4);
-  background: rgba(0, 40, 80, 0.3);
+  border-color: #ff8800;
+  background: rgba(80, 45, 15, 0.8);
+  color: #ffeedd;
 }
 
 .track-btn.selected {
-  border-color: #00ffff;
-  color: #00ffff;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.05);
+  border-color: #ff8800;
+  color: #ffcc00;
+  background: rgba(100, 55, 15, 0.8);
+  box-shadow: inset 0 0 12px rgba(255, 136, 0, 0.2);
 }
 
 .track-btn.locked {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }

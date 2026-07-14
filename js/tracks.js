@@ -15,8 +15,8 @@ function makeTrack(config) {
 
 export const TRACKS = [
   makeTrack({
-    name: 'Neon Circuit Alpha',
-    description: 'Training grid — master the hover controls.',
+    name: 'Dirt Oval',
+    description: 'Learn the ropes on this classic oval track.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', x: 180, y: 120, w: 600, h: 400 },
@@ -48,14 +48,14 @@ export const TRACKS = [
       { x: 500, y: 470, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'beacon', x: 140, y: 140 }, { type: 'beacon', x: 800, y: 140 },
-      { type: 'hologram', x: 480, y: 90 },
+      { type: 'cone', x: 140, y: 140 }, { type: 'cone', x: 800, y: 140 },
+      { type: 'flag', x: 480, y: 90 },
     ],
   }),
 
   makeTrack({
-    name: 'Plasma Swamp Sector',
-    description: 'Energy drain zones will cripple your thrusters.',
+    name: 'Mud Bog',
+    description: 'Watch out — the swamp will slow you right down.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', x: 120, y: 80, w: 720, h: 480 },
@@ -93,8 +93,8 @@ export const TRACKS = [
   }),
 
   makeTrack({
-    name: 'Quantum Crossover',
-    description: 'Cross the energy bridge at maximum velocity.',
+    name: 'Crossover',
+    description: 'Hit the bridge at full throttle.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', x: 80, y: 60, w: 380, h: 260 },
@@ -134,8 +134,8 @@ export const TRACKS = [
   }),
 
   makeTrack({
-    name: 'Void Canyon Run',
-    description: 'Tight vector turns and a long plasma straight.',
+    name: 'Canyon Run',
+    description: 'Tight turns and a long straight — hold on tight.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', x: 100, y: 200, w: 760, h: 240 },
@@ -173,8 +173,8 @@ export const TRACKS = [
   }),
 
   makeTrack({
-    name: 'Singularity Grand Prix',
-    description: 'The final gate. Every hazard, every surface, one champion.',
+    name: 'Grand Prix',
+    description: 'The championship finale. Every hazard, one winner.',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', x: 140, y: 100, w: 680, h: 440 },
@@ -216,9 +216,9 @@ export const TRACKS = [
       { x: 500, y: 480, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'energy_node', x: 480, y: 60 },
-      { type: 'beacon', x: 130, y: 530 },
-      { type: 'beacon', x: 810, y: 530 },
+      { type: 'flag', x: 480, y: 60 },
+      { type: 'tire', x: 130, y: 530 },
+      { type: 'tire', x: 810, y: 530 },
     ],
   }),
 ];

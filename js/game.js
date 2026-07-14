@@ -38,7 +38,7 @@ export class Game {
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.glowTrails = [];
+    this.skidTrails = [];
     this.particles = [];
 
     this._bindInput();
@@ -95,7 +95,7 @@ export class Game {
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.glowTrails = [];
+    this.skidTrails = [];
     this.particles = [];
 
     const playerStats = getStats(this.save.upgrades);
@@ -159,16 +159,32 @@ export class Game {
   }
 
   _spawnNitroParticles(car) {
-    const colors = ['#ff00ff', '#00ffff', '#8800ff'];
+    const colors = ['#ffaa00', '#ff6600', '#ffcc44'];
     for (let i = 0; i < 3; i++) {
       this.particles.push({
-        x: car.x - Math.cos(car.angle) * 14 + (Math.random() - 0.5) * 6,
-        y: car.y - Math.sin(car.angle) * 14 + (Math.random() - 0.5) * 6,
+        x: car.x - Math.cos(car.angle) * 18 + (Math.random() - 0.5) * 6,
+        y: car.y - Math.sin(car.angle) * 18 + (Math.random() - 0.5) * 6,
         vx: -Math.cos(car.angle) * (2 + Math.random() * 3),
         vy: -Math.sin(car.angle) * (2 + Math.random() * 3),
         size: 2 + Math.random() * 3,
         life: 1,
         color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+  }
+
+  _spawnDustParticles(car) {
+    const surface = getSurfaceAt(this.track, car.x, car.y);
+    const dustColor = surface === 'MUD' ? '#5c3a1a' : surface === 'GRASS' ? '#3a6a2a' : '#a08050';
+    for (let i = 0; i < 2; i++) {
+      this.particles.push({
+        x: car.x - Math.cos(car.angle) * 12 + (Math.random() - 0.5) * 10,
+        y: car.y - Math.sin(car.angle) * 12 + (Math.random() - 0.5) * 10,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        size: 2 + Math.random() * 4,
+        life: 0.8,
+        color: dustColor,
       });
     }
   }
@@ -217,22 +233,26 @@ export class Game {
 
       if (car.nitroActive) {
         this._spawnNitroParticles(car);
+      } else if (Math.abs(car.speed) > 2) {
+        this._spawnDustParticles(car);
       }
 
       if (Math.abs(car.speed) > 1.5) {
-        const trailColor = car.nitroActive ? '#ff00ff' : (car.color.glow || car.color.body);
-        this.glowTrails.push({
+        const trailColor = car.nitroActive ? '#aa6633' : '#665544';
+        this.skidTrails.push({
           x: car.x - this.camera.x,
           y: car.y - this.camera.y,
-          size: car.nitroActive ? 3 : 1.5,
-          alpha: car.nitroActive ? 0.6 : 0.25,
+          w: car.nitroActive ? 4 : 2.5,
+          h: car.nitroActive ? 2 : 1.5,
+          angle: car.angle,
+          alpha: car.nitroActive ? 0.5 : 0.3,
           color: trailColor,
         });
       }
     }
 
-    if (this.glowTrails.length > 300) this.glowTrails.splice(0, this.glowTrails.length - 300);
-    for (const t of this.glowTrails) t.alpha *= 0.96;
+    if (this.skidTrails.length > 400) this.skidTrails.splice(0, this.skidTrails.length - 400);
+    for (const t of this.skidTrails) t.alpha *= 0.97;
 
     this._updateParticles();
 
@@ -286,7 +306,7 @@ export class Game {
     this.ctx.translate(-this.camera.x, -this.camera.y);
     this.renderer.drawTrack(this.track);
 
-    this.renderer.drawGlowTrails(this.glowTrails);
+    this.renderer.drawSkidMarks(this.skidTrails);
     this.renderer.drawParticles(this.particles, { x: 0, y: 0 });
 
     const sorted = this._getPositions();

@@ -22,8 +22,8 @@ export class Car {
     this.raceTime = 0;
 
     this.width = 22;
-    this.height = 14;
-    this.radius = 12;
+    this.height = 36;
+    this.radius = 14;
   }
 
   reset(x, y, angle) {
@@ -73,7 +73,7 @@ export class Car {
 
     const targetVx = Math.cos(this.angle) * this.speed;
     const targetVy = Math.sin(this.angle) * this.speed;
-    const drift = surf.name === 'track' || surf.name === 'drain' ? 0.12 : 0.2;
+    const drift = surf.name === 'track' || surf.name === 'mud' ? 0.14 : 0.22;
     this.vx = this.vx * (1 - drift) + targetVx * drift;
     this.vy = this.vy * (1 - drift) + targetVy * drift;
 

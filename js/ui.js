@@ -12,14 +12,14 @@ export class UI {
   _buildScreens() {
     this.overlay.innerHTML = `
       <div id="screen-menu" class="screen">
-        <div class="title">Neon Drift</div>
-        <div class="subtitle">Hover Championship 2087</div>
-        <button class="btn" id="btn-championship">Enter Championship</button>
-        <button class="btn" id="btn-upgrades">Ship Upgrades</button>
+        <div class="title">Super Off-Road</div>
+        <div class="subtitle">Championship Edition</div>
+        <button class="btn" id="btn-championship">Start Championship</button>
+        <button class="btn" id="btn-upgrades">Truck Upgrades</button>
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>
         <div class="controls-hint">
-          ↑ / W — Thrust &nbsp;|&nbsp; ↓ / S — Reverse Brake<br>
-          ← → / A D — Vector Steer &nbsp;|&nbsp; SPACE — Plasma Boost
+          ↑ / W — Accelerate &nbsp;|&nbsp; ↓ / S — Brake / Reverse<br>
+          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro Boost
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>
@@ -27,12 +27,12 @@ export class UI {
       <div id="screen-championship" class="screen hidden">
         <div class="title" style="font-size:2rem">Championship</div>
         <div id="track-list" class="track-select"></div>
-        <button class="btn" id="btn-start-race">Launch Race</button>
-        <button class="btn btn-secondary" id="btn-champ-back">Abort</button>
+        <button class="btn" id="btn-start-race">Start Race</button>
+        <button class="btn btn-secondary" id="btn-champ-back">Back</button>
       </div>
 
       <div id="screen-upgrades" class="screen hidden">
-        <div class="title" style="font-size:2rem">Ship Bay</div>
+        <div class="title" style="font-size:2rem">Truck Garage</div>
         <div class="stats-panel">
           <div id="upgrade-credits" class="credits"></div>
           <div id="upgrade-list"></div>
@@ -63,7 +63,7 @@ export class UI {
           <div class="position-display" id="hud-position"></div>
         </div>
         <div class="hud-right hud-panel" style="align-items:flex-end">
-          <div class="nitro-label">PLASMA</div>
+          <div class="nitro-label">NITRO</div>
           <div class="nitro-bar-wrap"><div class="nitro-bar" id="hud-nitro"></div></div>
         </div>
       </div>
@@ -93,7 +93,7 @@ export class UI {
   showMainMenu(save) {
     this.hideAllScreens();
     document.getElementById('screen-menu').classList.remove('hidden');
-    document.getElementById('menu-credits').textContent = `Credits: ◈ ${save.credits}`;
+    document.getElementById('menu-credits').textContent = `Cash: $${save.credits}`;
     if (save.championshipsWon > 0) {
       document.getElementById('menu-credits').textContent +=
         `  |  Titles: ${save.championshipsWon}`;
@@ -113,8 +113,8 @@ export class UI {
       const btn = document.createElement('button');
       btn.className = 'track-btn' + (locked ? ' locked' : '') + (i === this.selectedTrack ? ' selected' : '');
       btn.textContent = locked
-        ? `◌ LOCKED — ${track.name}`
-        : `▸ ${i + 1}. ${track.name} — ${track.description}`;
+        ? `🔒 LOCKED — ${track.name}`
+        : `${i + 1}. ${track.name} — ${track.description}`;
       if (!locked) {
         btn.onclick = () => {
           this.selectedTrack = i;
@@ -137,15 +137,15 @@ export class UI {
   }
 
   _renderUpgrades(save) {
-    document.getElementById('upgrade-credits').textContent = `Credits: ◈ ${save.credits}`;
+    document.getElementById('upgrade-credits').textContent = `Cash: $${save.credits}`;
     const list = document.getElementById('upgrade-list');
     list.innerHTML = '';
 
     const labels = {
-      speed: 'Thruster Output',
-      accel: 'Acceleration Core',
-      handling: 'Vector Control',
-      nitro: 'Plasma Capacity',
+      speed: 'Top Speed',
+      accel: 'Acceleration',
+      handling: 'Handling',
+      nitro: 'Nitro Tank',
     };
 
     for (const [stat, label] of Object.entries(labels)) {
@@ -157,9 +157,9 @@ export class UI {
       row.className = 'upgrade-row';
       row.innerHTML = `
         <span>${label}</span>
-        <span class="level">MK ${level}/${MAX_UPGRADE_LEVEL}</span>
+        <span class="level">LV ${level}/${MAX_UPGRADE_LEVEL}</span>
         <button ${maxed || save.credits < cost ? 'disabled' : ''}>
-          ${maxed ? 'MAX' : `◈ ${cost}`}
+          ${maxed ? 'MAX' : `$${cost}`}
         </button>
       `;
       row.querySelector('button').onclick = () => {
@@ -194,7 +194,7 @@ export class UI {
     this.hideAllScreens();
     document.getElementById('screen-results').classList.remove('hidden');
     document.getElementById('results-track').textContent = trackName;
-    document.getElementById('results-earned').textContent = `Earned: ◈ ${earned}`;
+    document.getElementById('results-earned').textContent = `Earned: $${earned}`;
 
     const body = document.getElementById('results-body');
     body.innerHTML = '';

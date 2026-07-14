@@ -2,21 +2,21 @@ export const CANVAS_W = 960;
 export const CANVAS_H = 640;
 
 export const SURFACE = {
-  DIRT: { color: '#12122e', glow: '#00ffff', friction: 0.96, maxMult: 1.0, name: 'track' },
-  GRASS: { color: '#080818', glow: '#330066', friction: 0.92, maxMult: 0.65, name: 'void' },
-  MUD: { color: '#1a0828', glow: '#ff00ff', friction: 0.85, maxMult: 0.45, name: 'drain' },
-  ASPHALT: { color: '#0a2040', glow: '#00ccff', friction: 0.97, maxMult: 1.1, name: 'boost' },
-  WATER: { color: '#100830', glow: '#8800ff', friction: 0.7, maxMult: 0.3, name: 'plasma' },
+  DIRT: { color: '#c4a060', detail: '#b08d4a', friction: 0.96, maxMult: 1.0, name: 'track' },
+  GRASS: { color: '#3d7a3d', detail: '#2d602d', friction: 0.92, maxMult: 0.65, name: 'grass' },
+  MUD: { color: '#6b4423', detail: '#4a2f18', friction: 0.85, maxMult: 0.45, name: 'mud' },
+  ASPHALT: { color: '#6a6a6a', detail: '#888888', friction: 0.97, maxMult: 1.1, name: 'boost' },
+  WATER: { color: '#3a7ab8', detail: '#2a5a8a', friction: 0.7, maxMult: 0.3, name: 'water' },
 };
 
 export const UPGRADE_COSTS = [0, 200, 400, 700, 1100, 1600];
 export const MAX_UPGRADE_LEVEL = 5;
 
 export const TRUCK_COLORS = [
-  { body: '#00ffff', glow: '#00ffff', trim: '#0088aa', name: 'Cyan Phantom' },
-  { body: '#ff00ff', glow: '#ff00ff', trim: '#aa00aa', name: 'Magenta Streak' },
-  { body: '#4488ff', glow: '#4488ff', trim: '#2244aa', name: 'Ion Drift' },
-  { body: '#00ff88', glow: '#00ff88', trim: '#00aa55', name: 'Neon Pulse' },
+  { body: '#e03030', trim: '#aa1010', dark: '#801010', wheel: '#222222', name: 'Red Racer' },
+  { body: '#3060e0', trim: '#1030aa', dark: '#0a2080', wheel: '#222222', name: 'Blue Bolt' },
+  { body: '#e0c020', trim: '#aa8800', dark: '#806600', wheel: '#222222', name: 'Yellow Thunder' },
+  { body: '#30b050', trim: '#108030', dark: '#0a6020', wheel: '#222222', name: 'Green Machine' },
 ];
 
 export const LAPS_PER_RACE = 3;
