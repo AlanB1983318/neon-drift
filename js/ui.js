@@ -51,7 +51,7 @@ export class UI {
           </table>
           <div id="results-earned" class="credits"></div>
         </div>
-        <button class="btn" id="btn-results-continue">Continue</button>
+        <button class="btn" id="btn-results-continue">Next Track</button>
       </div>
 
       <div id="race-hud" class="race-hud hidden">
@@ -93,7 +93,13 @@ export class UI {
     document.getElementById('btn-champ-back').onclick = () => this.callbacks.onMenu();
     document.getElementById('btn-upgrades-back').onclick = () => this.callbacks.onMenu();
     document.getElementById('btn-start-race').onclick = () => this._startSelectedRace();
-    document.getElementById('btn-results-continue').onclick = () => this.callbacks.onMenu();
+    document.getElementById('btn-results-continue').onclick = () => {
+      if (this.callbacks.onResultsContinue) {
+        this.callbacks.onResultsContinue();
+      } else {
+        this.callbacks.onMenu();
+      }
+    };
   }
 
   hideAllScreens() {
@@ -248,17 +254,22 @@ export class UI {
     }
   }
 
-  showResults(results, earned, trackName, save) {
+  showResults(results, earned, trackName, save, meta = {}) {
     this.hideAllScreens();
     document.getElementById('screen-results').classList.remove('hidden');
     document.getElementById('results-track').textContent = trackName;
-    document.getElementById('results-earned').textContent = `Earned: $${earned}`;
+    let earnedText = `Earned: $${earned}`;
 
     const playerResult = results.find((r) => r.isPlayer);
     if (playerResult?.coins > 0) {
-      document.getElementById('results-earned').textContent +=
-        `  (+$${playerResult.coins * 15} from ${playerResult.coins} coins)`;
+      earnedText += `  (+$${playerResult.coins * 15} from ${playerResult.coins} coins)`;
     }
+    if (meta.won && meta.unlockedTrack && meta.nextTrack) {
+      earnedText += `  —  Unlocked: ${meta.nextTrack.name}!`;
+    } else if (meta.won && !meta.nextTrack) {
+      earnedText += '  —  Championship complete!';
+    }
+    document.getElementById('results-earned').textContent = earnedText;
 
     const body = document.getElementById('results-body');
     body.innerHTML = '';

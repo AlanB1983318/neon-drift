@@ -57,10 +57,13 @@ export function awardRaceCredits(save, position) {
 }
 
 export function unlockNextTrack(save, trackIndex) {
-  if (trackIndex + 1 > save.tracksUnlocked && trackIndex + 1 <= 5) {
-    save.tracksUnlocked = trackIndex + 1;
+  const nextCount = trackIndex + 2;
+  if (nextCount > save.tracksUnlocked && nextCount <= 5) {
+    save.tracksUnlocked = nextCount;
     writeSave(save);
+    return true;
   }
+  return false;
 }
 
 export function resetSave() {

@@ -11,16 +11,24 @@ let game;
 
 const ui = new UI(overlay, {
   onMenu: () => {
-    game.state = GameState.MENU;
-    ui.showMainMenu(save);
+    save = game.save ?? loadSave();
+    game.setSave(save);
+    game.showMenu();
   },
   onChampionship: () => {
-    game.state = GameState.CHAMPIONSHIP;
-    ui.showChampionship(save, TRACKS);
+    save = game.save ?? loadSave();
+    game.setSave(save);
+    game.showChampionship();
   },
   onUpgrades: () => {
-    game.state = GameState.UPGRADES;
-    ui.showUpgrades(save);
+    save = game.save ?? loadSave();
+    game.setSave(save);
+    game.showUpgrades();
+  },
+  onResultsContinue: () => {
+    save = game.save ?? loadSave();
+    game.setSave(save);
+    game.showChampionship();
   },
   onStartRace: (trackIndex) => {
     game.startRace(trackIndex);

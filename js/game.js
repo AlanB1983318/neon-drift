@@ -269,15 +269,22 @@ export class Game {
     }
 
     if (playerPos === 1) {
-      unlockNextTrack(this.save, this.trackIndex);
+      const unlocked = unlockNextTrack(this.save, this.trackIndex);
       if (this.trackIndex === 4) {
         this.save.championshipsWon++;
         writeSave(this.save);
       }
+      this._unlockedTrack = unlocked;
+    } else {
+      this._unlockedTrack = false;
     }
 
     this.state = GameState.RESULTS;
-    this.ui.showResults(this.results, earned, this.track.name, this.save);
+    this.ui.showResults(this.results, earned, this.track.name, this.save, {
+      won: playerPos === 1,
+      unlockedTrack: this._unlockedTrack,
+      nextTrack: this._unlockedTrack ? TRACKS[this.trackIndex + 1] : null,
+    });
   }
 
   _renderRace() {
