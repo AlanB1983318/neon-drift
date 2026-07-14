@@ -1,4 +1,5 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=27';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=28';
+import { getLoopLength } from './tracks.js?v=28';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
@@ -18,6 +19,7 @@ export class Car {
 
     this.lap = 0;
     this.checkpoint = 0;
+    this.waypointIndex = 0;
     this.finished = false;
     this.finishTime = 0;
     this.raceTime = 0;
@@ -54,6 +56,7 @@ export class Car {
     this.nitroActive = false;
     this.lap = 0;
     this.checkpoint = 0;
+    this.waypointIndex = 0;
     this.finished = false;
     this.finishTime = 0;
     this.raceTime = 0;
@@ -298,39 +301,34 @@ export class Car {
     return { nx: dx / d, ny: dy / d, overlap: r - d };
   }
 
-  checkCheckpoint(checkpoints) {
-    if (this.finished) return;
+  updateRaceProgress(track) {
+    const wps = track.waypoints;
+    const loopLen = getLoopLength(wps);
+    if (this.finished || !loopLen) return;
+
     if (this.checkpointCooldown > 0) {
       this.checkpointCooldown--;
       return;
     }
 
-    const cp = checkpoints[this.checkpoint];
-    if (!cp) return;
+    const target = wps[this.waypointIndex];
+    const reach = 42 + (track.roadWidth || 58) * 0.35;
 
-    const inZone = dist(this.x, this.y, cp.x, cp.y) < cp.radius;
-
-    // Cars spawn inside the start/finish line — wait until they drive out once.
-    if (this.checkpoint === 0 && !this.leftStartZone) {
-      if (!inZone) this.leftStartZone = true;
+    if (this.waypointIndex === 0 && !this.leftStartZone) {
+      if (dist(this.x, this.y, target.x, target.y) > reach) {
+        this.leftStartZone = true;
+      }
       return;
     }
 
-    if (!inZone) return;
+    if (dist(this.x, this.y, target.x, target.y) >= reach) return;
 
-    if (Math.abs(this.speed) > 0.3 && checkpoints.length > 1) {
-      const next = checkpoints[(this.checkpoint + 1) % checkpoints.length];
-      const exitAngle = Math.atan2(next.y - cp.y, next.x - cp.x);
-      const forward = Math.cos(this.angle) * Math.cos(exitAngle) + Math.sin(this.angle) * Math.sin(exitAngle);
-      if (forward < -0.3) return;
-    }
+    const prev = this.waypointIndex;
+    this.waypointIndex = (this.waypointIndex + 1) % loopLen;
+    this.checkpoint = this.waypointIndex;
+    this.checkpointCooldown = 18;
 
-    const passedIndex = this.checkpoint;
-    this.checkpoint = (this.checkpoint + 1) % checkpoints.length;
-    this.checkpointCooldown = 25;
-
-    // Lap completes when crossing the start/finish line (checkpoint 0).
-    if (passedIndex === 0 && this.leftStartZone) {
+    if (prev === loopLen - 1 && this.waypointIndex === 0 && this.leftStartZone) {
       this.lap++;
       if (this.lap >= LAPS_PER_RACE) {
         this.finished = true;

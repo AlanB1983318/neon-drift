@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp } from './utils.js?v=27';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=27';
+import { SURFACE, dist, clamp } from './utils.js?v=28';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=28';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -146,37 +146,44 @@ export const TRACKS = [
   makeTrack({
     name: 'Crossover',
     description: 'Hit the bridge at full throttle.',
-    roadWidth: 54,
+    roadWidth: 58,
+    roadType: 'DIRT',
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'ASPHALT', x: 420, y: 280, w: 120, h: 80 },
-      { type: 'MUD', x: 200, y: 420, w: 100, h: 80 },
-      { type: 'MUD', x: 660, y: 140, w: 100, h: 80 },
+      { type: 'ASPHALT', x: 390, y: 90, w: 180, h: 55 },
+      { type: 'ASPHALT', x: 390, y: 470, w: 180, h: 55 },
     ],
     walls: [
-      { x: 60, y: 40, w: 420, h: 20 }, { x: 480, y: 40, w: 420, h: 20 },
-      { x: 60, y: 300, w: 420, h: 20 }, { x: 480, y: 300, w: 420, h: 20 },
-      { x: 60, y: 560, w: 420, h: 20 }, { x: 480, y: 560, w: 420, h: 20 },
-      { x: 60, y: 40, w: 20, h: 280 }, { x: 60, y: 300, w: 20, h: 280 },
-      { x: 880, y: 40, w: 20, h: 280 }, { x: 880, y: 300, w: 20, h: 280 },
-      { x: 460, y: 40, w: 20, h: 240 }, { x: 460, y: 360, w: 20, h: 240 },
+      { x: 60, y: 40, w: 820, h: 20 },
+      { x: 60, y: 560, w: 820, h: 20 },
+      { x: 60, y: 40, w: 20, h: 540 },
+      { x: 860, y: 40, w: 20, h: 540 },
+      { x: 450, y: 40, w: 20, h: 55 },
+      { x: 450, y: 175, w: 20, h: 255 },
+      { x: 450, y: 490, w: 20, h: 70 },
     ],
     checkpointIndices: [0, 2, 4, 6, 7],
-    checkpointRadii: [50, 50, 50, 50, 45],
+    checkpointRadii: [50, 50, 50, 50, 50],
     waypoints: [
-      { x: 260, y: 480 }, { x: 260, y: 340 }, { x: 260, y: 160 },
-      { x: 480, y: 160 }, { x: 700, y: 160 }, { x: 700, y: 340 },
-      { x: 700, y: 480 }, { x: 480, y: 480 }, { x: 260, y: 480 },
+      { x: 240, y: 500 },
+      { x: 240, y: 380 },
+      { x: 240, y: 180 },
+      { x: 480, y: 120 },
+      { x: 720, y: 180 },
+      { x: 720, y: 380 },
+      { x: 720, y: 500 },
+      { x: 480, y: 500 },
+      { x: 240, y: 500 },
     ],
     starts: [
-      { x: 220, y: 470, angle: -Math.PI / 2 },
-      { x: 245, y: 480, angle: -Math.PI / 2 },
-      { x: 270, y: 490, angle: -Math.PI / 2 },
-      { x: 295, y: 480, angle: -Math.PI / 2 },
+      { x: 210, y: 485, angle: -Math.PI / 2 },
+      { x: 235, y: 495, angle: -Math.PI / 2 },
+      { x: 260, y: 505, angle: -Math.PI / 2 },
+      { x: 285, y: 495, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'flag', x: 480, y: 320 },
-      { type: 'cone', x: 480, y: 250 },
+      { type: 'flag', x: 480, y: 120 },
+      { type: 'cone', x: 480, y: 500 },
       { type: 'tree', x: 30, y: 320 },
     ],
   }),
@@ -285,17 +292,30 @@ export function getSurfaceAt(track, x, y) {
   return 'GRASS';
 }
 
-export function getRaceProgress(car, track) {
-  const cps = track.checkpoints;
-  if (!cps?.length) return car.lap * 1e6;
+export function getLoopLength(waypoints) {
+  if (!waypoints?.length) return 0;
+  if (waypoints.length < 2) return waypoints.length;
+  const first = waypoints[0];
+  const last = waypoints[waypoints.length - 1];
+  if (dist(first.x, first.y, last.x, last.y) < 40) {
+    return waypoints.length - 1;
+  }
+  return waypoints.length;
+}
 
-  const cp = cps[car.checkpoint];
-  const next = cps[(car.checkpoint + 1) % cps.length];
-  const segLen = dist(cp.x, cp.y, next.x, next.y) || 1;
+export function getRaceProgress(car, track) {
+  const wps = track.waypoints;
+  const loopLen = getLoopLength(wps);
+  if (!loopLen) return car.lap * 1e6;
+
+  const wpIndex = car.waypointIndex ?? car.checkpoint ?? 0;
+  const next = wps[(wpIndex + 1) % loopLen];
+  const cur = wps[wpIndex];
+  const segLen = dist(cur.x, cur.y, next.x, next.y) || 1;
   const distToNext = dist(car.x, car.y, next.x, next.y);
   const segmentProg = clamp(1 - distToNext / segLen, 0, 1);
 
-  return car.lap * 1e6 + car.checkpoint * 1e4 + segmentProg * 1e4;
+  return car.lap * 1e6 + wpIndex * 1e4 + segmentProg * 1e4;
 }
 
 export function getRoadPointsForMinimap(track) {

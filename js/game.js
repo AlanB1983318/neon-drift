@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=27';
-import { AIController } from './ai.js?v=27';
-import { Renderer3D } from './renderer3d.js?v=27';
-import { AudioEngine } from './audio.js?v=27';
-import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=27';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=27';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=27';
-import { ItemSystem, ITEMS } from './items.js?v=27';
+import { Car } from './car.js?v=28';
+import { AIController } from './ai.js?v=28';
+import { Renderer3D } from './renderer3d.js?v=28';
+import { AudioEngine } from './audio.js?v=28';
+import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=28';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=28';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=28';
+import { ItemSystem, ITEMS } from './items.js?v=28';
 
 export const GameState = {
   MENU: 'menu',
@@ -257,7 +257,7 @@ export class Game {
     for (const car of this.cars) {
       car.collideWalls(this.track.walls);
       car.collideCars(this.cars);
-      car.checkCheckpoint(this.track.checkpoints);
+      car.updateRaceProgress(this.track);
 
       if (Math.abs(car.speed) > 2.5 && this.frame % 5 === 0 && Math.random() < 0.3) {
         this._spawnDust(car);
