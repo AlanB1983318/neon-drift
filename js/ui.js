@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=7';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=7';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=8';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=8';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -197,11 +197,12 @@ export class UI {
     }
 
     const cd = document.getElementById('countdown');
-    if (data.countdown > 0) {
+    if (data.countdown > 0 && !data.raceStarted) {
       cd.classList.remove('hidden');
-      cd.textContent = data.countdown === 1 ? 'GO!' : data.countdown;
+      cd.textContent = String(data.countdown);
     } else {
       cd.classList.add('hidden');
+      cd.textContent = '';
     }
   }
 

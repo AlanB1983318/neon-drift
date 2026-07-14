@@ -324,10 +324,11 @@ body {
   align-items: center;
   justify-content: center;
   font-family: "Bangers", "Impact", sans-serif;
-  font-size: 8rem;
-  color: #ffcc00;
-  text-shadow: 4px 4px 0 #aa4400;
+  font-size: 6rem;
+  color: #ffffff;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
   pointer-events: none;
+  opacity: 0.85;
 }
 
 .results-table {

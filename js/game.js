@@ -1,10 +1,10 @@
-import { Car } from './car.js?v=7';
-import { AIController } from './ai.js?v=7';
-import { Renderer3D } from './renderer3d.js?v=7';
-import { AudioEngine } from './audio.js?v=7';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=7';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=7';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=7';
+import { Car } from './car.js?v=8';
+import { AIController } from './ai.js?v=8';
+import { Renderer3D } from './renderer3d.js?v=8';
+import { AudioEngine } from './audio.js?v=8';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=8';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=8';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=8';
 
 export const GameState = {
   MENU: 'menu',
@@ -248,6 +248,7 @@ export class Game {
       speed: Math.abs(player.speed),
       trackName: this.track.name,
       countdown: this.countdown > 0 ? Math.ceil(this.countdown / 60) : 0,
+      raceStarted: this.raceStarted,
       racers,
     });
   }
