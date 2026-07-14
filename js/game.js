@@ -1,10 +1,11 @@
-import { Car } from './car.js?v=10';
-import { AIController } from './ai.js?v=10';
-import { Renderer3D } from './renderer3d.js?v=10';
-import { AudioEngine } from './audio.js?v=10';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=10';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=10';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=10';
+import { Car } from './car.js?v=11';
+import { AIController } from './ai.js?v=11';
+import { Renderer3D } from './renderer3d.js?v=11';
+import { AudioEngine } from './audio.js?v=11';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=11';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=11';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=11';
+import { ItemSystem, ITEMS } from './items.js?v=11';
 
 export const GameState = {
   MENU: 'menu',
@@ -20,6 +21,7 @@ export class Game {
     this.renderer = new Renderer3D(container);
     this.audio = new AudioEngine();
     this.ui = ui;
+    this.items = new ItemSystem();
 
     this.state = GameState.MENU;
     this.save = null;
@@ -28,15 +30,17 @@ export class Game {
 
     this.cars = [];
     this.aiControllers = [];
-    this.input = { up: false, down: false, left: false, right: false, nitro: false };
+    this.input = { up: false, down: false, left: false, right: false, nitro: false, item: false };
     this.keys = {};
+    this.itemKeyDown = false;
 
     this.countdown = 0;
     this.lastCountdownNum = -1;
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.particles = [];
+    this.frame = 0;
+    this.launchBoostQueued = false;
 
     this._bindInput();
     this.lastTime = 0;
@@ -50,8 +54,14 @@ export class Game {
   _bindInput() {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'KeyE'].includes(e.code)) {
         e.preventDefault();
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'KeyE') {
+        if (!this.itemKeyDown && this.state === GameState.RACE && this.raceStarted) {
+          this._usePlayerItem();
+        }
+        this.itemKeyDown = true;
       }
       if (this.state === GameState.RACE && !this.audio.ctx) {
         this.audio.init();
@@ -59,6 +69,9 @@ export class Game {
     });
     window.addEventListener('keyup', (e) => {
       this.keys[e.code] = false;
+      if (e.code === 'ShiftLeft' || e.code === 'KeyE') {
+        this.itemKeyDown = false;
+      }
     });
   }
 
@@ -68,6 +81,22 @@ export class Game {
     this.input.left = this.keys['ArrowLeft'] || this.keys['KeyA'];
     this.input.right = this.keys['ArrowRight'] || this.keys['KeyD'];
     this.input.nitro = this.keys['Space'];
+
+    if (this.countdown > 0 && this.countdown <= 90 && this.input.up) {
+      this.launchBoostQueued = true;
+    }
+  }
+
+  _usePlayerItem() {
+    const player = this.cars[0];
+    if (!player || player.finished) return;
+    if (this.items.useItem(player, this.cars)) {
+      this.audio.playBeep(660, 0.08, 'square');
+    }
+  }
+
+  _getPosition(car) {
+    return this._getPositions().indexOf(car) + 1;
   }
 
   startRace(trackIndex) {
@@ -79,9 +108,11 @@ export class Game {
     this.raceStarted = false;
     this.raceFinished = false;
     this.results = [];
-    this.particles = [];
+    this.frame = 0;
+    this.launchBoostQueued = false;
 
     this.renderer.buildTrack(this.track);
+    this.items.init(this.track);
 
     const playerStats = getStats(this.save.upgrades);
     const aiSkills = [0.88, 0.82, 0.78];
@@ -142,7 +173,10 @@ export class Game {
   }
 
   _updateRace() {
+    this.frame++;
+
     if (this.countdown > 0) {
+      this._readInput();
       this.countdown--;
       const cdNum = Math.ceil(this.countdown / 60);
       if (cdNum !== this.lastCountdownNum) {
@@ -156,6 +190,11 @@ export class Game {
       if (this.countdown === 0) {
         this.raceStarted = true;
         this.audio.startEngine();
+        const player = this.cars[0];
+        if (player && this.launchBoostQueued) {
+          player.launchBoost = 45;
+          player.speed = 4;
+        }
       }
       return;
     }
@@ -186,10 +225,13 @@ export class Game {
 
     for (const ai of this.aiControllers) {
       ai.update(this.track);
+      this.items.aiUseItem(ai.car, this.cars, (c) => this._getPosition(c));
     }
 
+    this.items.update(this.cars, (c) => this._getPosition(c));
+
     if (player) {
-      this.audio.updateEngine(Math.abs(player.speed), player.nitroActive);
+      this.audio.updateEngine(Math.abs(player.speed), player.nitroActive || player.starTimer > 0);
     }
 
     if (!this.raceFinished && this.cars.every((c) => c.finished)) {
@@ -208,10 +250,18 @@ export class Game {
       position: i + 1,
       time: car.finishTime,
       isPlayer: car.isPlayer,
+      coins: car.coins,
     }));
 
-    const playerPos = this.results.find((r) => r.isPlayer).position;
-    const earned = awardRaceCredits(this.save, playerPos);
+    const playerResult = this.results.find((r) => r.isPlayer);
+    const playerPos = playerResult.position;
+    let earned = awardRaceCredits(this.save, playerPos);
+    const coinBonus = (playerResult.coins || 0) * 15;
+    if (coinBonus > 0) {
+      this.save.credits += coinBonus;
+      writeSave(this.save);
+      earned += coinBonus;
+    }
 
     if (playerPos === 1) {
       unlockNextTrack(this.save, this.trackIndex);
@@ -227,7 +277,7 @@ export class Game {
 
   _renderRace() {
     const player = this.cars[0];
-    this.renderer.render(this.track, this.cars, player);
+    this.renderer.render(this.track, this.cars, player, this.items);
 
     const positions = this._getPositions();
     const playerPos = positions.indexOf(player) + 1;
@@ -238,6 +288,8 @@ export class Game {
       isPlayer: car.isPlayer,
       lap: Math.min(car.lap + 1, LAPS_PER_RACE),
     }));
+
+    const held = player.heldItem ? ITEMS[player.heldItem] : null;
 
     this.ui.updateRaceHud({
       position: playerPos,
@@ -250,6 +302,11 @@ export class Game {
       countdown: this.countdown > 0 ? Math.ceil(this.countdown / 60) : 0,
       raceStarted: this.raceStarted,
       racers,
+      heldItem: held,
+      coins: player.coins,
+      driftCharge: player.driftCharge,
+      starActive: player.starTimer > 0,
+      lightningFlash: this.items.lightningFlash > 0,
     });
   }
 

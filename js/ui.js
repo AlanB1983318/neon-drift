@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=10';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=10';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=11';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=11';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -19,7 +19,8 @@ export class UI {
         <button class="btn btn-secondary" id="btn-reset">Reset Progress</button>
         <div class="controls-hint">
           ↑ / W — Gas &nbsp;|&nbsp; ↓ / S — Brake<br>
-          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro
+          ← → / A D — Steer &nbsp;|&nbsp; SPACE — Nitro<br>
+          SHIFT / E — Use Item &nbsp;|&nbsp; Drift on turns for boost!
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>
@@ -65,12 +66,20 @@ export class UI {
             <div class="position-display" id="hud-position"></div>
           </div>
           <div class="hud-right hud-panel">
+            <div class="item-slot" id="hud-item">
+              <span class="item-icon" id="hud-item-icon">—</span>
+              <span class="item-name" id="hud-item-name">NO ITEM</span>
+            </div>
+            <div class="coin-display" id="hud-coins">🪙 0</div>
+            <div class="drift-label">DRIFT BOOST</div>
+            <div class="drift-bar-wrap"><div class="drift-bar" id="hud-drift"></div></div>
             <div class="nitro-label">NITRO</div>
             <div class="nitro-bar-wrap"><div class="nitro-bar" id="hud-nitro"></div></div>
           </div>
         </div>
       </div>
 
+      <div id="lightning-flash" class="lightning-flash hidden"></div>
       <div id="countdown" class="countdown hidden"></div>
     `;
 
@@ -184,6 +193,39 @@ export class UI {
     document.getElementById('hud-nitro').style.width =
       `${(data.nitro / data.nitroMax) * 100}%`;
 
+    const driftEl = document.getElementById('hud-drift');
+    if (driftEl) {
+      driftEl.style.width = `${((data.driftCharge || 0) / 75) * 100}%`;
+      driftEl.classList.toggle('ready', (data.driftCharge || 0) >= 75);
+    }
+
+    const itemIcon = document.getElementById('hud-item-icon');
+    const itemName = document.getElementById('hud-item-name');
+    if (data.heldItem) {
+      itemIcon.textContent = data.heldItem.icon;
+      itemName.textContent = data.heldItem.name.toUpperCase();
+      document.getElementById('hud-item').classList.add('has-item');
+    } else {
+      itemIcon.textContent = '—';
+      itemName.textContent = 'NO ITEM';
+      document.getElementById('hud-item').classList.remove('has-item');
+    }
+
+    document.getElementById('hud-coins').textContent = `🪙 ${data.coins || 0}`;
+
+    const flash = document.getElementById('lightning-flash');
+    if (data.lightningFlash) {
+      flash.classList.remove('hidden');
+    } else {
+      flash.classList.add('hidden');
+    }
+
+    if (data.starActive) {
+      document.getElementById('hud-item').classList.add('star-active');
+    } else {
+      document.getElementById('hud-item').classList.remove('star-active');
+    }
+
     const bar = document.getElementById('racer-bar');
     if (data.racers) {
       bar.innerHTML = data.racers.map((r) => `
@@ -211,6 +253,12 @@ export class UI {
     document.getElementById('screen-results').classList.remove('hidden');
     document.getElementById('results-track').textContent = trackName;
     document.getElementById('results-earned').textContent = `Earned: $${earned}`;
+
+    const playerResult = results.find((r) => r.isPlayer);
+    if (playerResult?.coins > 0) {
+      document.getElementById('results-earned').textContent +=
+        `  (+$${playerResult.coins * 15} from ${playerResult.coins} coins)`;
+    }
 
     const body = document.getElementById('results-body');
     body.innerHTML = '';

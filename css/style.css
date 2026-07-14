@@ -317,6 +317,87 @@ body {
   transition: width 0.1s;
 }
 
+.item-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 2px solid #666;
+  background: rgba(0, 0, 0, 0.5);
+  min-width: 170px;
+}
+
+.item-slot.has-item {
+  border-color: #ffdd22;
+  box-shadow: 0 0 8px rgba(255, 220, 50, 0.4);
+}
+
+.item-slot.star-active {
+  border-color: #ffee44;
+  animation: star-pulse 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes star-pulse {
+  from { box-shadow: 0 0 8px rgba(255, 238, 68, 0.5); }
+  to { box-shadow: 0 0 16px rgba(255, 238, 68, 0.9); }
+}
+
+.item-icon {
+  font-size: 1.4rem;
+}
+
+.item-name {
+  font-size: 0.7rem;
+  color: #ffeedd;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.coin-display {
+  font-size: 0.85rem;
+  color: #ffdd22;
+  font-weight: bold;
+}
+
+.drift-label {
+  font-size: 0.65rem;
+  color: #66ccff;
+  letter-spacing: 1px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.drift-bar-wrap {
+  width: 170px;
+  height: 8px;
+  background: #1a2a3a;
+  border: 2px solid #4488cc;
+}
+
+.drift-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4488cc, #88ddff);
+  transition: width 0.08s;
+  width: 0%;
+}
+
+.drift-bar.ready {
+  background: linear-gradient(90deg, #ffaa00, #ffff44);
+  box-shadow: 0 0 6px #ffff44;
+}
+
+.lightning-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(200, 230, 255, 0.55);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.lightning-flash.hidden {
+  display: none;
+}
+
 .countdown {
   position: absolute;
   inset: 0;

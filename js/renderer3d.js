@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=10';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=11';
 import {
   buildTerrain,
   buildTrackOverlay,
@@ -7,7 +7,7 @@ import {
   buildStartGrid,
   buildFenceAlongEllipse,
   buildWaterPool,
-} from './trackbuilder.js?v=10';
+} from './trackbuilder.js?v=11';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -70,6 +70,7 @@ export class Renderer3D {
       depthWrite: false,
     });
     this.trackGroup = new THREE.Group();
+    this.itemGroup = new THREE.Group();
     this.frame = 0;
     this.textures = {};
 
@@ -95,6 +96,19 @@ export class Renderer3D {
     this._initLights();
     this._initSky();
     this.scene.add(this.trackGroup);
+    this.scene.add(this.itemGroup);
+    this._itemGeos = {
+      box: new THREE.BoxGeometry(0.9, 0.9, 0.9),
+      coin: new THREE.CylinderGeometry(0.18, 0.18, 0.06, 8),
+      shell: new THREE.SphereGeometry(0.22, 6, 6),
+      banana: new THREE.CylinderGeometry(0.2, 0.22, 0.08, 8),
+    };
+    this._itemMats = {
+      box: new THREE.MeshStandardMaterial({ color: 0xff66aa, emissive: 0xff2288, emissiveIntensity: 0.4, roughness: 0.4 }),
+      coin: new THREE.MeshStandardMaterial({ color: 0xffdd22, emissive: 0xffaa00, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.3 }),
+      shell: new THREE.MeshStandardMaterial({ color: 0x44cc44, roughness: 0.5 }),
+      banana: new THREE.MeshStandardMaterial({ color: 0xffdd22, roughness: 0.7 }),
+    };
     this._initMinimap();
     this._setupResize();
   }
@@ -403,18 +417,62 @@ export class Renderer3D {
       const speed = Math.abs(car.speed);
       const bounce = Math.sin(this.frame * 0.5) * speed * 0.015;
       group.position.set(this.gx(car.x), bounce, this.gz(car.y));
-      group.rotation.y = -car.angle + Math.PI / 2;
+      const spin = car.spinTimer > 0 ? car.spinAngle : 0;
+      group.rotation.y = -car.angle + Math.PI / 2 + spin;
+      const scale = 0.58 * car.getScale();
+      group.scale.setScalar(scale);
+
+      if (car.starTimer > 0) {
+        group.rotation.z = Math.sin(this.frame * 0.4) * 0.08;
+      } else {
+        group.rotation.z = 0;
+      }
 
       const roll = this.frame * speed * 0.18;
       for (const w of wheels) {
         w.rotation.x = roll;
       }
 
-      const nitro = car.nitroActive;
-      exhaustL.material.emissive = new THREE.Color(nitro ? 0xff4400 : 0x000000);
-      exhaustR.material.emissive = new THREE.Color(nitro ? 0xff4400 : 0x000000);
-      exhaustL.material.emissiveIntensity = nitro ? 3 : 0;
-      exhaustR.material.emissiveIntensity = nitro ? 3 : 0;
+      const boosted = car.nitroActive || car.starTimer > 0 || car.boostTimer > 0;
+      exhaustL.material.emissive = new THREE.Color(boosted ? 0xff4400 : 0x000000);
+      exhaustR.material.emissive = new THREE.Color(boosted ? 0xff4400 : 0x000000);
+      exhaustL.material.emissiveIntensity = boosted ? 3 : 0;
+      exhaustR.material.emissiveIntensity = boosted ? 3 : 0;
+    }
+  }
+
+  _syncItems(items) {
+    while (this.itemGroup.children.length) {
+      this.itemGroup.remove(this.itemGroup.children[0]);
+    }
+    if (!items) return;
+
+    for (const box of items.boxes) {
+      if (!box.active) continue;
+      const mesh = new THREE.Mesh(this._itemGeos.box, this._itemMats.box);
+      mesh.position.set(this.gx(box.x), 0.7 + Math.sin(box.spin) * 0.1, this.gz(box.y));
+      mesh.rotation.y = box.spin;
+      this.itemGroup.add(mesh);
+    }
+
+    for (const coin of items.coins) {
+      if (!coin.active) continue;
+      const mesh = new THREE.Mesh(this._itemGeos.coin, this._itemMats.coin);
+      mesh.rotation.x = Math.PI / 2;
+      mesh.position.set(this.gx(coin.x), 0.35 + Math.sin(coin.bob) * 0.08, this.gz(coin.y));
+      this.itemGroup.add(mesh);
+    }
+
+    for (const p of items.projectiles) {
+      const mesh = new THREE.Mesh(this._itemGeos.shell, this._itemMats.shell);
+      mesh.position.set(this.gx(p.x), 0.35, this.gz(p.y));
+      this.itemGroup.add(mesh);
+    }
+
+    for (const trap of items.traps) {
+      const mesh = new THREE.Mesh(this._itemGeos.banana, this._itemMats.banana);
+      mesh.position.set(this.gx(trap.x), 0.12, this.gz(trap.y));
+      this.itemGroup.add(mesh);
     }
   }
 
@@ -485,7 +543,7 @@ export class Renderer3D {
     this.sun.target.updateMatrixWorld();
   }
 
-  drawMinimap(track, cars) {
+  drawMinimap(track, cars, items) {
     const ctx = this.minimapCtx;
     const w = 120, h = 90;
     ctx.fillStyle = 'rgba(10,20,8,0.85)';
@@ -501,6 +559,14 @@ export class Renderer3D {
         ctx.fillRect(surf.x * sx, surf.y * sy, surf.w * sx, surf.h * sy);
       }
     }
+    if (items) {
+      ctx.fillStyle = '#ff66aa';
+      for (const box of items.boxes) {
+        if (box.active) {
+          ctx.fillRect(box.x * sx - 2, box.y * sy - 2, 4, 4);
+        }
+      }
+    }
     for (const car of cars) {
       ctx.fillStyle = car.isPlayer ? '#ffff00' : car.color.body;
       ctx.beginPath();
@@ -509,12 +575,13 @@ export class Renderer3D {
     }
   }
 
-  render(track, cars, player) {
+  render(track, cars, player, items) {
     this.frame++;
     this.syncCars(cars);
+    this._syncItems(items);
     this.updateDust();
     this.updateCamera(player);
-    if (track) this.drawMinimap(track, cars);
+    if (track) this.drawMinimap(track, cars, items);
     this.renderer.render(this.scene, this.camera);
   }
 }

@@ -1,15 +1,19 @@
-import { SURFACE } from './utils.js?v=10';
+import { SURFACE } from './utils.js?v=11';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=11';
 
 function makeTrack(config) {
+  const waypoints = config.waypoints;
   return {
     name: config.name,
     description: config.description,
     surfaces: config.surfaces,
     walls: config.walls,
     checkpoints: config.checkpoints,
-    waypoints: config.waypoints,
+    waypoints,
     starts: config.starts,
     decorations: config.decorations || [],
+    itemBoxes: config.itemBoxes || boxesFromWaypoints(waypoints, 2),
+    coins: config.coins || coinsFromWaypoints(waypoints, 1),
   };
 }
 
