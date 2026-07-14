@@ -1,4 +1,4 @@
-import { dist, clamp } from './utils.js?v=20';
+import { dist, clamp } from './utils.js?v=21';
 
 export const ITEMS = {
   BOOST: { name: 'Turbo Mushroom', icon: '🍄', color: '#ff4444' },
@@ -192,16 +192,22 @@ export class ItemSystem {
     for (let i = this.traps.length - 1; i >= 0; i--) {
       const trap = this.traps[i];
       trap.life--;
+      let removed = false;
+
       for (const car of cars) {
-        if (car.finished || car.starTimer > 0) continue;
+        if (car.finished || car.starTimer > 0 || car === trap.owner) continue;
         if (dist(car.x, car.y, trap.x, trap.y) < car.radius + 12) {
           car.spinOut(90);
           car.speed *= 0.25;
           this.traps.splice(i, 1);
+          removed = true;
           break;
         }
       }
-      if (trap.life <= 0) this.traps.splice(i, 1);
+
+      if (!removed && trap.life <= 0) {
+        this.traps.splice(i, 1);
+      }
     }
   }
 

@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=20';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=20';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=21';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=21';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -201,8 +201,8 @@ export class UI {
 
     const driftEl = document.getElementById('hud-drift');
     if (driftEl) {
-      driftEl.style.width = `${((data.driftCharge || 0) / 75) * 100}%`;
-      driftEl.classList.toggle('ready', (data.driftCharge || 0) >= 75);
+      driftEl.style.width = `${((data.driftCharge || 0) / 50) * 100}%`;
+      driftEl.classList.toggle('ready', (data.driftCharge || 0) >= 50);
     }
 
     const itemIcon = document.getElementById('hud-item-icon');

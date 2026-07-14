@@ -1,4 +1,4 @@
-import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=20';
+import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=21';
 
 const SAVE_KEY = 'offroad-spinoff-save';
 
@@ -13,7 +13,12 @@ export function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return structuredClone(DEFAULT_SAVE);
-    return { ...DEFAULT_SAVE, ...JSON.parse(raw) };
+    const data = JSON.parse(raw);
+    return {
+      ...DEFAULT_SAVE,
+      ...data,
+      upgrades: { ...DEFAULT_SAVE.upgrades, ...(data.upgrades || {}) },
+    };
   } catch {
     return structuredClone(DEFAULT_SAVE);
   }

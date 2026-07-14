@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=20';
-import { AIController } from './ai.js?v=20';
-import { Renderer3D } from './renderer3d.js?v=20';
-import { AudioEngine } from './audio.js?v=20';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=20';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=20';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=20';
-import { ItemSystem, ITEMS } from './items.js?v=20';
+import { Car } from './car.js?v=21';
+import { AIController } from './ai.js?v=21';
+import { Renderer3D } from './renderer3d.js?v=21';
+import { AudioEngine } from './audio.js?v=21';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=21';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=21';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=21';
+import { ItemSystem, ITEMS } from './items.js?v=21';
 
 export const GameState = {
   MENU: 'menu',
@@ -54,7 +54,7 @@ export class Game {
   _bindInput() {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyX', 'KeyC'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyX', 'KeyC', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
         e.preventDefault();
       }
       if (e.code === 'KeyX') {
@@ -100,6 +100,7 @@ export class Game {
   }
 
   startRace(trackIndex) {
+    if (!this.save) this.save = loadSave();
     this.trackIndex = trackIndex;
     this.track = TRACKS[trackIndex];
     this.state = GameState.RACE;
@@ -208,10 +209,17 @@ export class Game {
     const player = this.cars[0];
 
     for (const car of this.cars) {
-      const surface = getSurfaceAt(this.track, car.x, car.y);
       if (car.isPlayer) {
+        const surface = getSurfaceAt(this.track, car.x, car.y);
         car.update(this.input, surface, 1, this.raceStarted);
       }
+    }
+
+    for (const ai of this.aiControllers) {
+      ai.update(this.track);
+    }
+
+    for (const car of this.cars) {
       car.collideWalls(this.track.walls);
       car.collideCars(this.cars);
       car.checkCheckpoint(this.track.checkpoints);
@@ -229,7 +237,6 @@ export class Game {
     }
 
     for (const ai of this.aiControllers) {
-      ai.update(this.track);
       this.items.aiUseItem(ai.car, this.cars, (c) => this._getPosition(c));
     }
 
@@ -239,7 +246,26 @@ export class Game {
       this.audio.updateEngine(Math.abs(player.speed), player.nitroActive || player.starTimer > 0);
     }
 
-    if (!this.raceFinished && this.cars.every((c) => c.finished)) {
+    this._finalizeRaceIfReady();
+  }
+
+  _finalizeRaceIfReady() {
+    if (this.raceFinished) return;
+
+    const player = this.cars[0];
+    const playerDone = player?.finished;
+    const allDone = this.cars.every((c) => c.finished);
+
+    if (playerDone && !allDone) {
+      for (const car of this.cars) {
+        if (!car.finished) {
+          car.finished = true;
+          car.finishTime = car.raceTime + 10000;
+        }
+      }
+    }
+
+    if (playerDone || allDone) {
       this.raceFinished = true;
       this._endRace();
     }
