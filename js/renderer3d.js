@@ -1,9 +1,43 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=8';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=9';
+import {
+  buildTerrain,
+  buildTrackOverlay,
+  buildTireBarrier,
+  buildStartGrid,
+  buildFenceAlongEllipse,
+  buildWaterPool,
+} from './trackbuilder.js?v=9';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
 const CY = CANVAS_H / 2;
+
+function makeDetailedDirtTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#9a7848';
+  ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 8000; i++) {
+    const shade = 120 + Math.random() * 80;
+    ctx.fillStyle = `rgb(${shade},${shade * 0.75},${shade * 0.45})`;
+    ctx.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 3, 1);
+  }
+  for (let i = 0; i < 30; i++) {
+    ctx.strokeStyle = `rgba(60,40,20,${0.1 + Math.random() * 0.15})`;
+    ctx.lineWidth = 1 + Math.random() * 3;
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * 512, Math.random() * 512);
+    ctx.lineTo(Math.random() * 512, Math.random() * 512);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
 
 function makeNoiseTexture(w, h, base, variation, grain = 40) {
   const canvas = document.createElement('canvas');
@@ -66,10 +100,11 @@ export class Renderer3D {
   }
 
   _initTextures() {
-    this.textures.grass = makeNoiseTexture(256, 256, '#4a8a38', 0.08, 60);
-    this.textures.dirt = makeNoiseTexture(256, 256, '#a08048', 0.1, 80);
-    this.textures.mud = makeNoiseTexture(256, 256, '#6a4828', 0.08, 50);
-    this.textures.asphalt = makeNoiseTexture(256, 256, '#666666', 0.06, 30);
+    this.textures.grass = makeNoiseTexture(512, 512, '#3d7a35', 0.1, 120);
+    this.textures.dirt = makeDetailedDirtTexture();
+    this.textures.mud = makeNoiseTexture(256, 256, '#5a3820', 0.08, 60);
+    this.textures.asphalt = makeNoiseTexture(256, 256, '#555555', 0.05, 40);
+    this.textures.gravel = makeNoiseTexture(256, 256, '#8a7858', 0.09, 50);
   }
 
   _initSky() {
@@ -185,122 +220,29 @@ export class Renderer3D {
   buildTrack(track) {
     this.clearTrack();
 
-    const grassGeo = new THREE.PlaneGeometry(140, 100, 32, 32);
-    const pos = grassGeo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      pos.setY(i, (Math.random() - 0.5) * 0.08);
+    this.trackGroup.add(buildTerrain(track, this.textures));
+    this.trackGroup.add(buildTrackOverlay(track, this.textures));
+
+    const dirtOval = track.surfaces.find((s) => s.type === 'DIRT' && s.shape === 'ellipse');
+    if (dirtOval) {
+      this.trackGroup.add(buildFenceAlongEllipse(dirtOval.cx, dirtOval.cy, dirtOval.rx, dirtOval.ry));
     }
-    grassGeo.computeVertexNormals();
-    const grass = new THREE.Mesh(grassGeo, this._surfMat('GRASS', SURFACE.GRASS.color));
-    grass.rotation.x = -Math.PI / 2;
-    grass.receiveShadow = true;
-    this.trackGroup.add(grass);
 
     for (const surf of track.surfaces) {
-      if (surf.type === 'GRASS') continue;
-      this._addSurface(surf);
-      if (surf.type === 'DIRT' && surf.shape === 'ellipse') {
-        this._addBerm(surf);
+      if (surf.type === 'WATER') {
+        this.trackGroup.add(buildWaterPool(surf));
       }
     }
 
     for (const wall of track.walls) {
-      this._addWall(wall);
+      this.trackGroup.add(buildTireBarrier(wall));
     }
 
     for (const dec of track.decorations || []) {
       this._addDecoration(dec);
     }
 
-    const start = track.starts[0];
-    const angle = -start.angle + Math.PI / 2;
-    for (let i = 0; i < 12; i++) {
-      const tile = new THREE.Mesh(
-        new THREE.BoxGeometry(1.4, 0.04, 0.65),
-        new THREE.MeshStandardMaterial({
-          color: i % 2 === 0 ? 0xffffff : 0x111111,
-          roughness: 0.6,
-        })
-      );
-      const offset = (i - 5.5) * 0.7;
-      tile.position.set(
-        this.gx(start.x) + Math.sin(angle) * offset,
-        0.03,
-        this.gz(start.y) + Math.cos(angle) * offset
-      );
-      tile.rotation.y = angle;
-      tile.receiveShadow = true;
-      this.trackGroup.add(tile);
-    }
-  }
-
-  _addBerm(surf) {
-    const outer = new THREE.Mesh(
-      new THREE.RingGeometry(
-        Math.max(surf.rx, surf.ry) * SCALE - 0.3,
-        Math.max(surf.rx, surf.ry) * SCALE + 0.5,
-        64
-      ),
-      new THREE.MeshStandardMaterial({ color: 0x7a6030, roughness: 0.95 })
-    );
-    outer.rotation.x = -Math.PI / 2;
-    outer.position.set(this.gx(surf.cx), 0.12, this.gz(surf.cy));
-    outer.scale.set(surf.rx / Math.max(surf.rx, surf.ry), surf.ry / Math.max(surf.rx, surf.ry), 1);
-    outer.castShadow = true;
-    this.trackGroup.add(outer);
-  }
-
-  _addSurface(surf) {
-    const s = SURFACE[surf.type];
-    const mat = this._surfMat(surf.type, s.color);
-    let mesh;
-
-    if (surf.shape === 'ellipse') {
-      const geo = new THREE.CircleGeometry(1, 64);
-      const p = geo.attributes.position;
-      for (let i = 0; i < p.count; i++) {
-        p.setZ(i, p.getZ(i) + (Math.random() - 0.5) * 0.02);
-      }
-      geo.computeVertexNormals();
-      mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.set(this.gx(surf.cx), 0.05, this.gz(surf.cy));
-      mesh.scale.set(surf.rx * SCALE, surf.ry * SCALE, 1);
-    } else {
-      mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(surf.w * SCALE, 0.06, surf.h * SCALE),
-        mat
-      );
-      mesh.position.set(this.gx(surf.x + surf.w / 2), 0.05, this.gz(surf.y + surf.h / 2));
-    }
-    mesh.receiveShadow = true;
-    this.trackGroup.add(mesh);
-  }
-
-  _addWall(wall) {
-    const w = wall.w * SCALE;
-    const h = wall.h * SCALE;
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(w, 1.6, h),
-      new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.7, metalness: 0.2 })
-    );
-    mesh.position.set(this.gx(wall.x + wall.w / 2), 0.8, this.gz(wall.y + wall.h / 2));
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    this.trackGroup.add(mesh);
-
-    const isHoriz = w > h;
-    const count = Math.floor((isHoriz ? w : h) / 0.7);
-    for (let i = 0; i < count; i++) {
-      const stripe = new THREE.Mesh(
-        new THREE.BoxGeometry(isHoriz ? 0.35 : w * 1.02, 1.58, isHoriz ? h * 1.02 : 0.35),
-        new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xcc2222 : 0xeeeeee, roughness: 0.5 })
-      );
-      stripe.position.copy(mesh.position);
-      if (isHoriz) stripe.position.x += -w / 2 + i * 0.7 + 0.15;
-      else stripe.position.z += -h / 2 + i * 0.7 + 0.15;
-      this.trackGroup.add(stripe);
-    }
+    this.trackGroup.add(buildStartGrid(track.starts[0]));
   }
 
   _addDecoration(dec) {
@@ -334,12 +276,17 @@ export class Renderer3D {
         this.trackGroup.add(tire);
       }
     } else if (dec.type === 'grandstand') {
-      const stand = new THREE.Mesh(
-        new THREE.BoxGeometry(6 * s, 2 * s, 2.5 * s),
-        new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.75 })
-      );
-      stand.position.set(x, 1 * s, z);
-      stand.castShadow = true;
+      const stand = new THREE.Group();
+      for (let tier = 0; tier < 4; tier++) {
+        const row = new THREE.Mesh(
+          new THREE.BoxGeometry(7 * s, 0.5 * s, 2.8 * s),
+          new THREE.MeshStandardMaterial({ color: 0x666666 + tier * 0x111111, roughness: 0.7 })
+        );
+        row.position.set(0, (0.5 + tier * 0.55) * s, 0);
+        row.castShadow = true;
+        stand.add(row);
+      }
+      stand.position.set(x, 0, z);
       this.trackGroup.add(stand);
     } else if (dec.type === 'cone') {
       const cone = new THREE.Mesh(
@@ -349,6 +296,29 @@ export class Renderer3D {
       cone.position.set(x, 0.38 * s, z);
       cone.castShadow = true;
       this.trackGroup.add(cone);
+    } else if (dec.type === 'rock') {
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.9 * s, 0),
+        new THREE.MeshStandardMaterial({ color: 0x6a6a5a, roughness: 0.95 })
+      );
+      rock.position.set(x, 0.35 * s, z);
+      rock.rotation.set(Math.random(), Math.random(), Math.random());
+      rock.scale.set(1.2 * s, 0.7 * s, 1.1 * s);
+      rock.castShadow = true;
+      this.trackGroup.add(rock);
+    } else if (dec.type === 'flag') {
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04 * s, 0.05 * s, 2.2 * s, 8),
+        new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.4 })
+      );
+      pole.position.set(x, 1.1 * s, z);
+      pole.castShadow = true;
+      const flag = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.9 * s, 0.55 * s),
+        new THREE.MeshStandardMaterial({ color: 0xdd2222, side: THREE.DoubleSide, roughness: 0.7 })
+      );
+      flag.position.set(x + 0.45 * s, 1.7 * s, z);
+      this.trackGroup.add(pole, flag);
     }
   }
 
@@ -450,7 +420,6 @@ export class Renderer3D {
       group.position.set(this.gx(car.x), bounce, this.gz(car.y));
       group.rotation.y = -car.angle + Math.PI / 2;
 
-      const steer = 0;
       const roll = this.frame * speed * 0.18;
       for (const w of wheels) {
         w.rotation.x = roll;
