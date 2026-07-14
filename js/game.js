@@ -1,10 +1,10 @@
-import { Car } from './car.js?v=3';
-import { AIController } from './ai.js?v=3';
-import { Renderer } from './renderer.js?v=3';
-import { AudioEngine } from './audio.js?v=3';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=3';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=3';
-import { TRUCK_COLORS, LAPS_PER_RACE, CANVAS_W, CANVAS_H } from './utils.js?v=3';
+import { Car } from './car.js?v=4';
+import { AIController } from './ai.js?v=4';
+import { Renderer } from './renderer.js?v=4';
+import { AudioEngine } from './audio.js?v=4';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=4';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=4';
+import { TRUCK_COLORS, LAPS_PER_RACE, CANVAS_W, CANVAS_H } from './utils.js?v=4';
 
 export const GameState = {
   MENU: 'menu',
@@ -124,7 +124,7 @@ export class Game {
         });
       }
 
-      const car = new Car(start.x, start.y, start.angle, stats, TRUCK_COLORS[i], isPlayer);
+      const car = new Car(start.x, start.y, start.angle, stats, TRUCK_COLORS[i], isPlayer, i + 1);
       this.cars.push(car);
 
       if (!isPlayer) {

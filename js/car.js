@@ -1,13 +1,14 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=3';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=4';
 
 export class Car {
-  constructor(x, y, angle, stats, color, isPlayer = false) {
+  constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.stats = stats;
     this.color = color;
     this.isPlayer = isPlayer;
+    this.number = number;
 
     this.speed = 0;
     this.vx = 0;
@@ -21,9 +22,9 @@ export class Car {
     this.finishTime = 0;
     this.raceTime = 0;
 
-    this.width = 22;
-    this.height = 36;
-    this.radius = 14;
+    this.width = 26;
+    this.height = 38;
+    this.radius = 15;
   }
 
   reset(x, y, angle) {

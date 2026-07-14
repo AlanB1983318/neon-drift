@@ -1,7 +1,7 @@
-import { Game, GameState } from './game.js?v=3';
-import { UI } from './ui.js?v=3';
-import { loadSave, resetSave } from './save.js?v=3';
-import { TRACKS } from './tracks.js?v=3';
+import { Game, GameState } from './game.js?v=4';
+import { UI } from './ui.js?v=4';
+import { loadSave, resetSave } from './save.js?v=4';
+import { TRACKS } from './tracks.js?v=4';
 
 const canvas = document.getElementById('game-canvas');
 const overlay = document.getElementById('ui-overlay');

@@ -1,4 +1,4 @@
-import { SURFACE } from './utils.js?v=3';
+import { SURFACE } from './utils.js?v=4';
 
 function makeTrack(config) {
   return {
@@ -48,8 +48,11 @@ export const TRACKS = [
       { x: 500, y: 470, angle: -Math.PI / 2 },
     ],
     decorations: [
+      { type: 'grandstand', x: 480, y: 70 },
       { type: 'cone', x: 140, y: 140 }, { type: 'cone', x: 800, y: 140 },
-      { type: 'flag', x: 480, y: 90 },
+      { type: 'tire', x: 170, y: 530 }, { type: 'tire', x: 790, y: 530 },
+      { type: 'tree', x: 60, y: 200 }, { type: 'tree', x: 900, y: 200 },
+      { type: 'tree', x: 60, y: 450 }, { type: 'tree', x: 900, y: 450 },
     ],
   }),
 
@@ -89,6 +92,11 @@ export const TRACKS = [
       { x: 445, y: 500, angle: -Math.PI / 2 },
       { x: 470, y: 510, angle: -Math.PI / 2 },
       { x: 495, y: 500, angle: -Math.PI / 2 },
+    ],
+    decorations: [
+      { type: 'tree', x: 60, y: 120 }, { type: 'tree', x: 900, y: 120 },
+      { type: 'rock', x: 350, y: 180 }, { type: 'rock', x: 610, y: 420 },
+      { type: 'tire', x: 100, y: 580 }, { type: 'tire', x: 860, y: 580 },
     ],
   }),
 
@@ -131,6 +139,11 @@ export const TRACKS = [
       { x: 270, y: 490, angle: -Math.PI / 2 },
       { x: 295, y: 480, angle: -Math.PI / 2 },
     ],
+    decorations: [
+      { type: 'flag', x: 480, y: 320 },
+      { type: 'cone', x: 480, y: 250 }, { type: 'cone', x: 480, y: 390 },
+      { type: 'tree', x: 30, y: 320 }, { type: 'tree', x: 930, y: 320 },
+    ],
   }),
 
   makeTrack({
@@ -169,6 +182,12 @@ export const TRACKS = [
       { x: 120, y: 330, angle: 0 },
       { x: 120, y: 310, angle: 0 },
       { x: 120, y: 290, angle: 0 },
+    ],
+    decorations: [
+      { type: 'rock', x: 500, y: 160 }, { type: 'rock', x: 700, y: 160 },
+      { type: 'rock', x: 500, y: 480 }, { type: 'rock', x: 700, y: 480 },
+      { type: 'grandstand', x: 480, y: 150 },
+      { type: 'tire', x: 90, y: 180 }, { type: 'tire', x: 870, y: 180 },
     ],
   }),
 
@@ -216,9 +235,12 @@ export const TRACKS = [
       { x: 500, y: 480, angle: -Math.PI / 2 },
     ],
     decorations: [
+      { type: 'grandstand', x: 480, y: 60 },
       { type: 'flag', x: 480, y: 60 },
-      { type: 'tire', x: 130, y: 530 },
-      { type: 'tire', x: 810, y: 530 },
+      { type: 'tire', x: 130, y: 530 }, { type: 'tire', x: 810, y: 530 },
+      { type: 'cone', x: 200, y: 100 }, { type: 'cone', x: 760, y: 100 },
+      { type: 'tree', x: 50, y: 320 }, { type: 'tree', x: 910, y: 320 },
+      { type: 'rock', x: 300, y: 540 }, { type: 'rock', x: 660, y: 540 },
     ],
   }),
 ];

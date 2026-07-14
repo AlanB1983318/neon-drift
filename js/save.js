@@ -1,4 +1,4 @@
-import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=3';
+import { UPGRADE_COSTS, MAX_UPGRADE_LEVEL } from './utils.js?v=4';
 
 const SAVE_KEY = 'offroad-spinoff-save';
 
