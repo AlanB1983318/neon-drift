@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=17';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=17';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=18';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=18';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -20,7 +20,7 @@ export class UI {
         <div class="controls-hint">
           Auto-accelerates — steer with ← → or A D<br>
           ↓ / S — Brake &nbsp;|&nbsp; ↑ / W — Extra gas<br>
-          SPACE / C — Nitro &nbsp;|&nbsp; SHIFT / E / Q — Use Item
+          SPACE / C — Nitro &nbsp;|&nbsp; X — Use Item
         </div>
         <div id="menu-credits" class="credits" style="margin-top:16px"></div>
       </div>
@@ -203,7 +203,7 @@ export class UI {
     const itemName = document.getElementById('hud-item-name');
     if (data.heldItem) {
       itemIcon.textContent = data.heldItem.icon;
-      itemName.textContent = data.heldItem.name.toUpperCase();
+      itemName.textContent = `${data.heldItem.name.toUpperCase()} (X)`;
       document.getElementById('hud-item').classList.add('has-item');
     } else {
       itemIcon.textContent = '—';

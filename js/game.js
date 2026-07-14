@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=17';
-import { AIController } from './ai.js?v=17';
-import { Renderer3D } from './renderer3d.js?v=17';
-import { AudioEngine } from './audio.js?v=17';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=17';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=17';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=17';
-import { ItemSystem, ITEMS } from './items.js?v=17';
+import { Car } from './car.js?v=18';
+import { AIController } from './ai.js?v=18';
+import { Renderer3D } from './renderer3d.js?v=18';
+import { AudioEngine } from './audio.js?v=18';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=18';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=18';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=18';
+import { ItemSystem, ITEMS } from './items.js?v=18';
 
 export const GameState = {
   MENU: 'menu',
@@ -54,10 +54,10 @@ export class Game {
   _bindInput() {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'KeyE', 'KeyQ', 'KeyX', 'KeyC'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyX', 'KeyC'].includes(e.code)) {
         e.preventDefault();
       }
-      if (e.code === 'ShiftLeft' || e.code === 'KeyE' || e.code === 'KeyQ' || e.code === 'KeyX') {
+      if (e.code === 'KeyX') {
         if (!this.itemKeyDown && this.state === GameState.RACE && this.raceStarted) {
           this._usePlayerItem();
         }
@@ -69,7 +69,7 @@ export class Game {
     });
     window.addEventListener('keyup', (e) => {
       this.keys[e.code] = false;
-      if (e.code === 'ShiftLeft' || e.code === 'KeyE' || e.code === 'KeyQ' || e.code === 'KeyX') {
+      if (e.code === 'KeyX') {
         this.itemKeyDown = false;
       }
     });
