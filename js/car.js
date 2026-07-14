@@ -1,4 +1,4 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=26';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=27';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
