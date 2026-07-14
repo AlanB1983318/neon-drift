@@ -1,5 +1,5 @@
-import { SURFACE } from './utils.js?v=14';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=14';
+import { SURFACE } from './utils.js?v=15';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=15';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -64,7 +64,7 @@ export const TRACKS = [
     name: 'Dirt Oval',
     description: 'Learn the ropes on this classic oval track.',
     roadShape: 'oval',
-    roadWidth: 68,
+    roadWidth: 72,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
       { type: 'DIRT', shape: 'ellipse', cx: 480, cy: 320, rx: 310, ry: 210 },

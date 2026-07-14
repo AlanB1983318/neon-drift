@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=14';
-import { getRoadPointsForMinimap } from './tracks.js?v=14';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=15';
+import { getRoadPointsForMinimap } from './tracks.js?v=15';
 import {
   buildGrassBase,
   buildRoad,
@@ -10,65 +10,43 @@ import {
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=14';
+} from './trackbuilder.js?v=15';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
 const CY = CANVAS_H / 2;
 
-function makeRoadLaneTexture(style = 'tarmac') {
+function makeRoadLaneTexture() {
   const cw = 64;
-  const ch = 128;
+  const ch = 64;
   const canvas = document.createElement('canvas');
   canvas.width = cw;
   canvas.height = ch;
   const ctx = canvas.getContext('2d');
 
-  const shoulder = '#5a5040';
-  const surface = style === 'tarmac' ? '#3d3d3d' : '#7a6340';
-  const surfaceLight = style === 'tarmac' ? '#4a4a4a' : '#8a7350';
-
-  ctx.fillStyle = shoulder;
+  ctx.fillStyle = '#2a2a2a';
   ctx.fillRect(0, 0, cw, ch);
 
-  ctx.fillStyle = '#f4f4f4';
-  ctx.fillRect(5, 0, 3, ch);
-  ctx.fillRect(cw - 8, 0, 3, ch);
-
-  ctx.fillStyle = '#cc2222';
-  ctx.fillRect(0, 0, 4, ch * 0.55);
-  ctx.fillRect(cw - 4, ch * 0.45, 4, ch * 0.55);
-
-  ctx.fillStyle = surface;
-  ctx.fillRect(9, 0, cw - 18, ch);
-
-  for (let i = 0; i < 400; i++) {
-    const g = style === 'tarmac' ? 50 + Math.random() * 30 : 90 + Math.random() * 40;
-    ctx.fillStyle = style === 'tarmac'
-      ? `rgb(${g},${g},${g})`
-      : `rgb(${g},${Math.floor(g * 0.8)},${Math.floor(g * 0.5)})`;
-    ctx.fillRect(9 + Math.random() * (cw - 18), Math.random() * ch, 2, 1);
+  for (let i = 0; i < 500; i++) {
+    const g = 38 + Math.random() * 22;
+    ctx.fillStyle = `rgb(${g},${g},${g})`;
+    ctx.fillRect(Math.random() * cw, Math.random() * ch, 2 + Math.random() * 3, 1);
   }
 
-  for (let y = 0; y < ch; y += 14) {
-    ctx.fillStyle = '#eeeeee';
-    ctx.fillRect(cw / 2 - 2, y, 4, 7);
-  }
-
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  for (let y = 0; y < ch; y += 32) {
-    ctx.fillRect(12, y, cw - 24, 2);
+  for (let y = 0; y < ch; y += 8) {
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.fillRect(0, y, cw, 1);
   }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(1, 1);
+  tex.repeat.set(4, 4);
   return tex;
 }
 
 function makeRoadTexture() {
-  return makeRoadLaneTexture('dirt');
+  return makeRoadLaneTexture();
 }
 
 function makeNoiseTexture(w, h, base, variation, grain = 40) {
@@ -152,12 +130,12 @@ export class Renderer3D {
   }
 
   _initTextures() {
-    this.textures.grass = makeNoiseTexture(128, 128, '#3d7a35', 0.08, 20);
-    this.textures.road = makeRoadLaneTexture('dirt');
-    this.textures.tarmac = makeRoadLaneTexture('tarmac');
+    this.textures.grass = makeNoiseTexture(128, 128, '#2d6b28', 0.06, 20);
+    this.textures.road = makeRoadLaneTexture();
+    this.textures.tarmac = this.textures.road;
     this.textures.dirt = this.textures.road;
     this.textures.mud = makeNoiseTexture(64, 64, '#5a3820', 0.06, 10);
-    this.textures.asphalt = makeRoadLaneTexture('tarmac');
+    this.textures.asphalt = this.textures.road;
   }
 
   _initItemPool() {
@@ -497,8 +475,8 @@ export class Renderer3D {
     const sx = w / CANVAS_W, sy = h / CANVAS_H;
     const roadPts = getRoadPointsForMinimap(track);
     if (roadPts.length > 1) {
-      ctx.strokeStyle = 'rgba(60,60,80,0.9)';
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = 'rgba(40,40,45,0.95)';
+      ctx.lineWidth = 7;
       ctx.beginPath();
       roadPts.forEach((wp, i) => {
         if (i === 0) ctx.moveTo(wp.x * sx, wp.y * sy);
