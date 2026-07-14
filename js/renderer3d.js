@@ -1,6 +1,12 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=15';
-import { getRoadPointsForMinimap } from './tracks.js?v=15';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=16';
+import { getRoadPointsForMinimap } from './tracks.js?v=16';
+import {
+  buildItemBoxGroup,
+  buildCoinGroup,
+  buildShellGroup,
+  buildBananaGroup,
+} from './itemMeshes.js?v=16';
 import {
   buildGrassBase,
   buildRoad,
@@ -10,7 +16,7 @@ import {
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=15';
+} from './trackbuilder.js?v=16';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -112,18 +118,6 @@ export class Renderer3D {
     this._initSky();
     this.scene.add(this.trackGroup);
     this.scene.add(this.itemGroup);
-    this._itemGeos = {
-      box: new THREE.BoxGeometry(0.9, 0.9, 0.9),
-      coin: new THREE.CylinderGeometry(0.18, 0.18, 0.06, 8),
-      shell: new THREE.SphereGeometry(0.22, 6, 6),
-      banana: new THREE.CylinderGeometry(0.2, 0.22, 0.08, 8),
-    };
-    this._itemMats = {
-      box: new THREE.MeshLambertMaterial({ color: 0xff66aa }),
-      coin: new THREE.MeshLambertMaterial({ color: 0xffdd22 }),
-      shell: new THREE.MeshLambertMaterial({ color: 0x44cc44 }),
-      banana: new THREE.MeshLambertMaterial({ color: 0xffdd22 }),
-    };
     this._initItemPool();
     this._initMinimap();
     this._setupResize();
@@ -140,18 +134,18 @@ export class Renderer3D {
 
   _initItemPool() {
     this._pool = { boxes: [], coins: [], shells: [], bananas: [] };
-    const add = (arr, geo, mat, n) => {
+    const addGroup = (arr, factory, n) => {
       for (let i = 0; i < n; i++) {
-        const m = new THREE.Mesh(geo, mat);
-        m.visible = false;
-        this.itemGroup.add(m);
-        arr.push(m);
+        const g = factory();
+        g.visible = false;
+        this.itemGroup.add(g);
+        arr.push(g);
       }
     };
-    add(this._pool.boxes, this._itemGeos.box, this._itemMats.box, 6);
-    add(this._pool.coins, this._itemGeos.coin, this._itemMats.coin, 8);
-    add(this._pool.shells, this._itemGeos.shell, this._itemMats.shell, 6);
-    add(this._pool.bananas, this._itemGeos.banana, this._itemMats.banana, 8);
+    addGroup(this._pool.boxes, buildItemBoxGroup, 6);
+    addGroup(this._pool.coins, buildCoinGroup, 8);
+    addGroup(this._pool.shells, buildShellGroup, 6);
+    addGroup(this._pool.bananas, buildBananaGroup, 8);
   }
 
   _initSky() {
@@ -365,7 +359,10 @@ export class Renderer3D {
   }
 
   _hidePool(arr) {
-    for (const m of arr) m.visible = false;
+    for (const g of arr) {
+      g.visible = false;
+      g.scale.setScalar(1);
+    }
   }
 
   _syncItems(items) {
@@ -378,29 +375,34 @@ export class Renderer3D {
     let bi = 0, ci = 0, si = 0, ti = 0;
     for (const box of items.boxes) {
       if (!box.active || bi >= this._pool.boxes.length) continue;
-      const m = this._pool.boxes[bi++];
-      m.visible = true;
-      m.position.set(this.gx(box.x), 0.65 + Math.sin(box.spin) * 0.08, this.gz(box.y));
-      m.rotation.y = box.spin;
+      const g = this._pool.boxes[bi++];
+      g.visible = true;
+      const bob = Math.sin(box.spin) * 0.08;
+      g.position.set(this.gx(box.x), 0.55 + bob, this.gz(box.y));
+      g.rotation.y = box.spin;
+      g.scale.setScalar(1 + Math.sin(box.spin * 2) * 0.04);
     }
     for (const coin of items.coins) {
       if (!coin.active || ci >= this._pool.coins.length) continue;
-      const m = this._pool.coins[ci++];
-      m.visible = true;
-      m.rotation.x = Math.PI / 2;
-      m.position.set(this.gx(coin.x), 0.3 + Math.sin(coin.bob) * 0.06, this.gz(coin.y));
+      const g = this._pool.coins[ci++];
+      g.visible = true;
+      g.position.set(this.gx(coin.x), 0.34 + Math.sin(coin.bob) * 0.08, this.gz(coin.y));
+      g.rotation.y = coin.bob * 1.6;
+      g.rotation.x = Math.sin(coin.bob * 0.5) * 0.25;
     }
     for (const p of items.projectiles) {
       if (si >= this._pool.shells.length) break;
-      const m = this._pool.shells[si++];
-      m.visible = true;
-      m.position.set(this.gx(p.x), 0.3, this.gz(p.y));
+      const g = this._pool.shells[si++];
+      g.visible = true;
+      g.position.set(this.gx(p.x), 0.22, this.gz(p.y));
+      g.rotation.y = -p.angle + Math.PI / 2;
     }
     for (const trap of items.traps) {
       if (ti >= this._pool.bananas.length) break;
-      const m = this._pool.bananas[ti++];
-      m.visible = true;
-      m.position.set(this.gx(trap.x), 0.1, this.gz(trap.y));
+      const g = this._pool.bananas[ti++];
+      g.visible = true;
+      g.position.set(this.gx(trap.x), 0.05, this.gz(trap.y));
+      g.rotation.y = this.frame * 0.01;
     }
   }
 
@@ -500,10 +502,15 @@ export class Renderer3D {
       }
     }
     if (items) {
-      ctx.fillStyle = '#ff66aa';
+      ctx.fillStyle = '#e8a020';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
       for (const box of items.boxes) {
         if (box.active) {
-          ctx.fillRect(box.x * sx - 2, box.y * sy - 2, 4, 4);
+          ctx.beginPath();
+          ctx.arc(box.x * sx, box.y * sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
         }
       }
     }
