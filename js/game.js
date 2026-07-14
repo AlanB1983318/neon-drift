@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=11';
-import { AIController } from './ai.js?v=11';
-import { Renderer3D } from './renderer3d.js?v=11';
-import { AudioEngine } from './audio.js?v=11';
-import { TRACKS, getSurfaceAt } from './tracks.js?v=11';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=11';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=11';
-import { ItemSystem, ITEMS } from './items.js?v=11';
+import { Car } from './car.js?v=12';
+import { AIController } from './ai.js?v=12';
+import { Renderer3D } from './renderer3d.js?v=12';
+import { AudioEngine } from './audio.js?v=12';
+import { TRACKS, getSurfaceAt } from './tracks.js?v=12';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave } from './save.js?v=12';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=12';
+import { ItemSystem, ITEMS } from './items.js?v=12';
 
 export const GameState = {
   MENU: 'menu',
@@ -211,10 +211,10 @@ export class Game {
       car.collideCars(this.cars);
       car.checkCheckpoint(this.track.checkpoints);
 
-      if (Math.abs(car.speed) > 2 && this.frame % 3 === 0 && Math.random() < 0.45) {
+      if (Math.abs(car.speed) > 2.5 && this.frame % 5 === 0 && Math.random() < 0.3) {
         this._spawnDust(car);
       }
-      if (car.nitroActive && this.frame % 2 === 0 && Math.random() < 0.35) {
+      if (car.nitroActive && this.frame % 4 === 0 && Math.random() < 0.25) {
         this.renderer.spawnDust(
           car.x - Math.cos(car.angle) * 20,
           car.y - Math.sin(car.angle) * 20,

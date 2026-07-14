@@ -1,4 +1,4 @@
-import { dist, clamp } from './utils.js?v=11';
+import { dist, clamp } from './utils.js?v=12';
 
 export const ITEMS = {
   BOOST: { name: 'Turbo Mushroom', icon: '🍄', color: '#ff4444' },
@@ -231,17 +231,17 @@ export class ItemSystem {
   }
 }
 
-export function boxesFromWaypoints(waypoints, step = 2) {
+export function boxesFromWaypoints(waypoints, step = 3) {
   return waypoints
     .filter((_, i) => i % step === 0)
-    .slice(0, 5)
+    .slice(0, 4)
     .map((wp) => ({ x: wp.x, y: wp.y, radius: 30 }));
 }
 
-export function coinsFromWaypoints(waypoints, step = 1) {
+export function coinsFromWaypoints(waypoints, step = 2) {
   return waypoints
     .filter((_, i) => i % step === 1)
-    .slice(0, 8)
+    .slice(0, 5)
     .map((wp, i) => ({
       x: wp.x + (i % 2 === 0 ? 18 : -18),
       y: wp.y + (i % 3 === 0 ? 14 : -14),
