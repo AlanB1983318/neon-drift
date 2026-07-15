@@ -1,11 +1,75 @@
-import { SURFACE, dist, clamp } from './utils.js?v=32';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=32';
+import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=33';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=33';
+
+function distToWaypointRoad(waypoints, x, y, roadWidth = 58) {
+  if (!waypoints?.length) return Infinity;
+  const half = roadWidth / 2 + 18;
+  const closed = true;
+  const segs = waypoints.length;
+  let minD = Infinity;
+  for (let i = 0; i < segs; i++) {
+    const a = waypoints[i];
+    const b = waypoints[(i + 1) % waypoints.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) {
+      minD = Math.min(minD, dist(x, y, a.x, a.y));
+      continue;
+    }
+    let t = ((x - a.x) * dx + (y - a.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    minD = Math.min(minD, dist(x, y, a.x + t * dx, a.y + t * dy));
+  }
+  return minD - half;
+}
+
+function scatterForest(waypoints, count = 36, roadWidth = 58) {
+  const decorations = [];
+  let attempts = 0;
+  while (decorations.length < count && attempts < count * 12) {
+    attempts++;
+    const x = 24 + Math.random() * (CANVAS_W - 48);
+    const y = 24 + Math.random() * (CANVAS_H - 48);
+    if (distToWaypointRoad(waypoints, x, y, roadWidth) < 12) continue;
+    const roll = Math.random();
+    const type = roll < 0.55 ? 'pine' : roll < 0.85 ? 'tree' : 'bush';
+    decorations.push({
+      type,
+      x,
+      y,
+      scale: 0.55 + Math.random() * 0.75,
+    });
+  }
+  return decorations;
+}
+
+function ringMountains() {
+  return [
+    { type: 'mountain', x: 70, y: 120, scale: 2.2 },
+    { type: 'mountain', x: 180, y: 55, scale: 1.8 },
+    { type: 'mountain', x: 480, y: 35, scale: 2.6 },
+    { type: 'mountain', x: 780, y: 55, scale: 2.0 },
+    { type: 'mountain', x: 890, y: 130, scale: 2.4 },
+    { type: 'mountain', x: 900, y: 480, scale: 2.1 },
+    { type: 'mountain', x: 820, y: 580, scale: 1.7 },
+    { type: 'mountain', x: 480, y: 610, scale: 2.3 },
+    { type: 'mountain', x: 140, y: 580, scale: 1.9 },
+    { type: 'mountain', x: 50, y: 460, scale: 2.5 },
+    { type: 'mountain', x: 60, y: 280, scale: 1.6 },
+    { type: 'mountain', x: 880, y: 300, scale: 1.8 },
+  ];
+}
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
   const checkpoints = config.checkpointIndices
     ? checkpointsAlongWaypoints(waypoints, config.checkpointIndices, config.checkpointRadii)
     : config.checkpoints;
+  const manualDecor = config.decorations || [];
+  const autoDecor = config.autoScenery === false
+    ? []
+    : scatterForest(waypoints, config.sceneryCount ?? 34, config.roadWidth || 58);
   return {
     name: config.name,
     description: config.description,
@@ -14,7 +78,7 @@ function makeTrack(config) {
     checkpoints,
     waypoints,
     starts: config.starts,
-    decorations: config.decorations || [],
+    decorations: [...ringMountains(), ...manualDecor, ...autoDecor],
     itemBoxes: config.itemBoxes || boxesFromWaypoints(waypoints, 3),
     coins: config.coins || coinsFromWaypoints(waypoints, 2),
     roadWidth: config.roadWidth || 58,
@@ -22,6 +86,7 @@ function makeTrack(config) {
     roadType: config.roadType || 'DIRT',
     roadClosed: config.roadClosed !== false,
     roadShape: config.roadShape || null,
+    showRouteArrows: config.showRouteArrows !== false,
   };
 }
 
@@ -117,16 +182,15 @@ export const TRACKS = [
 
   makeTrack({
     name: 'Mud Bog',
-    description: 'Serpentine swamp run — twice through the bog.',
-    roadWidth: 58,
+    description: 'Follow the green arrows — stay on the outer loop around the swamp.',
+    roadWidth: 60,
+    sceneryCount: 42,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'MUD', x: 360, y: 260, w: 240, h: 140 },
-      { type: 'WATER', x: 430, y: 300, w: 100, h: 60 },
-      { type: 'MUD', x: 180, y: 400, w: 100, h: 80 },
-      { type: 'MUD', x: 680, y: 160, w: 100, h: 80 },
-      { type: 'ASPHALT', x: 100, y: 260, w: 80, h: 70 },
-      { type: 'ASPHALT', x: 780, y: 260, w: 80, h: 70 },
+      { type: 'MUD', x: 380, y: 280, w: 200, h: 120 },
+      { type: 'WATER', x: 440, y: 310, w: 80, h: 50 },
+      { type: 'ASPHALT', x: 120, y: 250, w: 70, h: 60 },
+      { type: 'ASPHALT', x: 770, y: 250, w: 70, h: 60 },
     ],
     walls: [
       { x: 100, y: 60, w: 760, h: 20 },
@@ -135,16 +199,18 @@ export const TRACKS = [
       { x: 840, y: 60, w: 20, h: 520 },
       { x: 300, y: 180, w: 22, h: 70 },
       { x: 640, y: 380, w: 22, h: 70 },
+      { x: 350, y: 255, w: 260, h: 18 },
+      { x: 350, y: 405, w: 260, h: 18 },
+      { x: 340, y: 265, w: 18, h: 150 },
+      { x: 602, y: 265, w: 18, h: 150 },
     ],
-    checkpointIndices: [0, 5, 10, 15, 20],
+    checkpointIndices: [0, 4, 8, 12, 16],
     waypoints: [
       { x: 480, y: 520 }, { x: 380, y: 505 }, { x: 280, y: 470 }, { x: 200, y: 410 },
       { x: 150, y: 330 }, { x: 155, y: 250 }, { x: 200, y: 180 }, { x: 290, y: 130 },
       { x: 400, y: 105 }, { x: 520, y: 100 }, { x: 640, y: 120 }, { x: 730, y: 170 },
       { x: 790, y: 250 }, { x: 800, y: 330 }, { x: 760, y: 410 }, { x: 680, y: 470 },
-      { x: 580, y: 500 }, { x: 500, y: 480 }, { x: 440, y: 430 }, { x: 420, y: 370 },
-      { x: 450, y: 320 }, { x: 510, y: 300 }, { x: 570, y: 320 }, { x: 600, y: 380 },
-      { x: 560, y: 440 }, { x: 480, y: 520 },
+      { x: 580, y: 510 }, { x: 480, y: 520 },
     ],
     starts: [
       { x: 420, y: 500, angle: -Math.PI / 2 },
@@ -153,7 +219,8 @@ export const TRACKS = [
       { x: 495, y: 510, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'tree', x: 60, y: 120 }, { type: 'tree', x: 900, y: 120 },
+      { type: 'sign', x: 480, y: 490, label: 'OUTER LOOP →' },
+      { type: 'cone', x: 500, y: 450 }, { type: 'cone', x: 460, y: 450 },
       { type: 'rock', x: 330, y: 170 }, { type: 'rock', x: 630, y: 420 },
     ],
   }),

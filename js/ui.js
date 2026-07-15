@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=32';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=32';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=33';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=33';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -60,6 +60,7 @@ export class UI {
         <div class="hud-row">
           <div class="hud-left hud-panel">
             <div id="hud-track" class="track-name-hud"></div>
+            <div id="hud-route-hint" class="route-hint-hud"></div>
             <div class="lap-display" id="hud-lap"></div>
             <div id="hud-speed" class="speed-hud"></div>
           </div>
@@ -274,6 +275,11 @@ export class UI {
 
   updateRaceHud(data) {
     document.getElementById('hud-track').textContent = data.trackName.toUpperCase();
+    const hint = document.getElementById('hud-route-hint');
+    if (hint) {
+      hint.textContent = data.routeHint || '';
+      hint.style.display = data.routeHint ? 'block' : 'none';
+    }
     document.getElementById('hud-lap').textContent = `LAP ${data.lap}/${data.totalLaps}`;
     document.getElementById('hud-speed').textContent = `${Math.round(data.speed * 22)} MPH`;
     document.getElementById('hud-nitro').style.width =

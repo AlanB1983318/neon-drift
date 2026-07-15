@@ -1,22 +1,23 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=32';
-import { getRoadPointsForMinimap } from './tracks.js?v=32';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=33';
+import { getRoadPointsForMinimap } from './tracks.js?v=33';
 import {
   buildItemBoxGroup,
   buildCoinGroup,
   buildShellGroup,
   buildBananaGroup,
-} from './itemMeshes.js?v=32';
+} from './itemMeshes.js?v=33';
 import {
   buildGrassBase,
   buildRoad,
   buildRoadMarkings,
+  buildRouteArrows,
   buildHazardPatches,
   buildSimpleBarrier,
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=32';
+} from './trackbuilder.js?v=33';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -246,6 +247,7 @@ export class Renderer3D {
     this.trackGroup.add(buildGrassBase(this.textures));
     this.trackGroup.add(buildRoad(track, this.textures));
     this.trackGroup.add(buildRoadMarkings(track));
+    this.trackGroup.add(buildRouteArrows(track));
     this.trackGroup.add(buildHazardPatches(track, this.textures));
 
     for (const surf of track.surfaces) {
@@ -280,6 +282,59 @@ export class Renderer3D {
       );
       foliage.position.set(x, 1.5 * s, z);
       this.trackGroup.add(trunk, foliage);
+    } else if (dec.type === 'pine') {
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08 * s, 0.12 * s, 1.0 * s, 5),
+        new THREE.MeshLambertMaterial({ color: 0x3a2818 })
+      );
+      trunk.position.set(x, 0.5 * s, z);
+      const layers = [0x1f5a22, 0x2a6a2c, 0x357a38];
+      for (let i = 0; i < 3; i++) {
+        const layer = new THREE.Mesh(
+          new THREE.ConeGeometry((0.55 - i * 0.1) * s, (0.9 - i * 0.05) * s, 6),
+          new THREE.MeshLambertMaterial({ color: layers[i] })
+        );
+        layer.position.set(x, (1.1 + i * 0.55) * s, z);
+        this.trackGroup.add(layer);
+      }
+      this.trackGroup.add(trunk);
+    } else if (dec.type === 'bush') {
+      const bush = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45 * s, 6, 5),
+        new THREE.MeshLambertMaterial({ color: 0x3a7a32 })
+      );
+      bush.scale.set(1.1, 0.7, 1.1);
+      bush.position.set(x, 0.28 * s, z);
+      this.trackGroup.add(bush);
+    } else if (dec.type === 'mountain') {
+      const base = new THREE.Mesh(
+        new THREE.ConeGeometry(2.8 * s, 3.6 * s, 7),
+        new THREE.MeshLambertMaterial({ color: 0x5a6a58 })
+      );
+      base.position.set(x, 1.6 * s, z);
+      const snow = new THREE.Mesh(
+        new THREE.ConeGeometry(1.1 * s, 1.2 * s, 7),
+        new THREE.MeshLambertMaterial({ color: 0xd8e8f0 })
+      );
+      snow.position.set(x, 3.1 * s, z);
+      const rock = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2 * s, 0.5 * s, 2.4 * s),
+        new THREE.MeshLambertMaterial({ color: 0x4a5248 })
+      );
+      rock.position.set(x, 0.2 * s, z);
+      this.trackGroup.add(rock, base, snow);
+    } else if (dec.type === 'sign') {
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05 * s, 0.06 * s, 1.4 * s, 4),
+        new THREE.MeshLambertMaterial({ color: 0x888888 })
+      );
+      post.position.set(x, 0.7 * s, z);
+      const board = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2 * s, 0.7 * s, 0.08 * s),
+        new THREE.MeshLambertMaterial({ color: 0x22aa44 })
+      );
+      board.position.set(x, 1.35 * s, z);
+      this.trackGroup.add(post, board);
     } else if (dec.type === 'tire') {
       const tire = new THREE.Mesh(
         new THREE.TorusGeometry(0.35 * s, 0.12 * s, 4, 8),
@@ -324,31 +379,93 @@ export class Renderer3D {
     const body = new THREE.Color(car.color.body);
     const dark = new THREE.Color(car.color.dark);
     const trim = new THREE.Color(car.color.trim);
+    const accent = new THREE.Color(car.color.accent || car.color.trim);
     const paint = (color) => new THREE.MeshLambertMaterial({ color });
-    const rubber = new THREE.MeshLambertMaterial({ color: 0x151515 });
+    const rubber = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const chrome = new THREE.MeshLambertMaterial({ color: 0xbbbbcc });
+    const glass = new THREE.MeshLambertMaterial({ color: 0x88bbee, transparent: true, opacity: 0.75 });
 
-    const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.35, 4.0), paint(dark));
-    chassis.position.y = 0.5;
+    const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.28, 4.2), paint(dark));
+    chassis.position.y = 0.42;
     group.add(chassis);
 
-    const bed = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.3, 1.7), paint(body));
-    bed.position.set(0, 0.72, -1.05);
+    const skid = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 3.6), paint(dark));
+    skid.position.set(0, 0.22, 0);
+    group.add(skid);
+
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.42, 1.85), paint(body));
+    bed.position.set(0, 0.68, -1.05);
     group.add(bed);
 
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.55), paint(body));
-    cab.position.set(0, 1.08, 0.9);
+    const bedRailL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 1.7), paint(trim));
+    bedRailL.position.set(0.88, 0.88, -1.05);
+    const bedRailR = bedRailL.clone();
+    bedRailR.position.x = -0.88;
+    group.add(bedRailL, bedRailR);
+
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.95, 1.65), paint(body));
+    cab.position.set(0, 1.05, 0.85);
     group.add(cab);
 
-    const hood = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.45, 1.2), paint(trim));
-    hood.position.set(0, 0.88, 1.95);
+    const cabTop = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.35, 1.45), paint(trim));
+    cabTop.position.set(0, 1.55, 0.82);
+    group.add(cabTop);
+
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.55, 0.08), glass);
+    windshield.position.set(0, 1.18, 1.62);
+    group.add(windshield);
+
+    const hood = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.38, 1.35), paint(trim));
+    hood.position.set(0, 0.82, 1.95);
     group.add(hood);
 
+    const grille = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.45, 0.12), paint(dark));
+    grille.position.set(0, 0.72, 2.62);
+    group.add(grille);
+
+    const bumper = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.18, 0.22), chrome);
+    bumper.position.set(0, 0.38, 2.72);
+    group.add(bumper);
+
+    const exhaustL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.9, 5), chrome);
+    exhaustL.position.set(0.55, 0.95, -1.75);
+    const exhaustR = exhaustL.clone();
+    exhaustR.position.x = -0.55;
+    group.add(exhaustL, exhaustR);
+
+    const numPlate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.42, 0.06),
+      paint(accent)
+    );
+    numPlate.position.set(0, 1.02, 2.55);
+    group.add(numPlate);
+
+    const lightBar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.1, 0.18), paint(accent));
+    lightBar.position.set(0, 1.72, 1.0);
+    group.add(lightBar);
+
+    for (const [lx, lz] of [[0.75, 1.0], [-0.75, 1.0], [0.78, -0.9], [-0.78, -0.9]]) {
+      const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 4), chrome);
+      strut.position.set(lx, 0.72, lz);
+      group.add(strut);
+    }
+
     const wheels = [];
-    for (const [wx, wy, wz] of [[0.88, 0.42, 1.35], [-0.88, 0.42, 1.35], [0.92, 0.42, -1.25], [-0.92, 0.42, -1.25]]) {
-      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.34, 8), rubber);
+    const wheelOffsets = [
+      [0.95, 0.48, 1.4], [-0.95, 0.48, 1.4],
+      [0.98, 0.48, -1.2], [-0.98, 0.48, -1.2],
+    ];
+    for (const [wx, wy, wz] of wheelOffsets) {
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.38, 10), rubber);
       tire.rotation.z = Math.PI / 2;
       tire.position.set(wx, wy, wz);
-      group.add(tire);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.4, 6), chrome);
+      hub.rotation.z = Math.PI / 2;
+      hub.position.set(wx, wy, wz);
+      const tread = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.07, 4, 10), rubber);
+      tread.rotation.y = Math.PI / 2;
+      tread.position.set(wx, wy, wz);
+      group.add(tire, hub, tread);
       wheels.push(tire);
     }
 
@@ -498,10 +615,10 @@ export class Renderer3D {
     ctx.fillStyle = 'rgba(10,20,8,0.85)';
     ctx.fillRect(0, 0, w, h);
     const sx = w / CANVAS_W, sy = h / CANVAS_H;
-    const roadPts = getRoadPointsForMinimap(track);
+    const roadPts = track.waypoints?.length ? track.waypoints : getRoadPointsForMinimap(track);
     if (roadPts.length > 1) {
-      ctx.strokeStyle = 'rgba(40,40,45,0.95)';
-      ctx.lineWidth = 7;
+      ctx.strokeStyle = 'rgba(30,30,35,0.95)';
+      ctx.lineWidth = 8;
       ctx.beginPath();
       roadPts.forEach((wp, i) => {
         if (i === 0) ctx.moveTo(wp.x * sx, wp.y * sy);
@@ -509,9 +626,27 @@ export class Renderer3D {
       });
       ctx.closePath();
       ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(50,220,100,0.85)';
+      ctx.lineWidth = 3;
       ctx.stroke();
+      for (let i = 0; i < roadPts.length; i += 3) {
+        const p = roadPts[i];
+        const next = roadPts[(i + 1) % roadPts.length];
+        const mx = (p.x + next.x) * 0.5 * sx;
+        const my = (p.y + next.y) * 0.5 * sy;
+        const ang = Math.atan2((next.y - p.y) * sy, (next.x - p.x) * sx);
+        ctx.save();
+        ctx.translate(mx, my);
+        ctx.rotate(ang);
+        ctx.fillStyle = 'rgba(80,255,120,0.9)';
+        ctx.beginPath();
+        ctx.moveTo(4, 0);
+        ctx.lineTo(-2, -2.5);
+        ctx.lineTo(-2, 2.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
     }
     for (const surf of track.surfaces) {
       if (surf.type === 'GRASS' || surf.type === 'DIRT') continue;

@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=32';
-import { AIController } from './ai.js?v=32';
-import { Renderer3D } from './renderer3d.js?v=32';
-import { AudioEngine } from './audio.js?v=32';
-import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=32';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=32';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=32';
-import { ItemSystem, ITEMS } from './items.js?v=32';
+import { Car } from './car.js?v=33';
+import { AIController } from './ai.js?v=33';
+import { Renderer3D } from './renderer3d.js?v=33';
+import { AudioEngine } from './audio.js?v=33';
+import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=33';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=33';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=33';
+import { ItemSystem, ITEMS } from './items.js?v=33';
 
 export const GameState = {
   MENU: 'menu',
@@ -377,6 +377,7 @@ export class Game {
       nitroMax: player.stats.nitroMax,
       speed: Math.abs(player.speed),
       trackName: this.track.name,
+      routeHint: this.track.description,
       countdown: this.countdown > 0 ? Math.ceil(this.countdown / 60) : 0,
       raceStarted: this.raceStarted,
       racers,

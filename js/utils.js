@@ -4,7 +4,7 @@ export const CANVAS_H = 640;
 export const SURFACE = {
   DIRT: { color: '#c8a858', detail: '#a08038', friction: 0.94, maxMult: 1.0, name: 'track' },
   GRASS: { color: '#4a9a40', detail: '#2d7028', friction: 0.90, maxMult: 0.6, name: 'grass' },
-  MUD: { color: '#7a5030', detail: '#4a3018', friction: 0.82, maxMult: 0.4, name: 'mud' },
+  MUD: { color: '#7a5030', detail: '#4a3018', friction: 0.86, maxMult: 0.52, name: 'mud' },
   ASPHALT: { color: '#808080', detail: '#606060', friction: 0.97, maxMult: 1.15, name: 'boost' },
   WATER: { color: '#4a88b8', detail: '#2a5888', friction: 0.65, maxMult: 0.25, name: 'water' },
 };

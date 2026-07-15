@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=32';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=33';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -217,6 +217,58 @@ export function buildRoadMarkings(track) {
       curb.rotation.y = angle;
       group.add(curb);
     }
+  }
+
+  return group;
+}
+
+function loopLength(waypoints) {
+  if (!waypoints?.length) return 0;
+  const first = waypoints[0];
+  const last = waypoints[waypoints.length - 1];
+  const dx = first.x - last.x;
+  const dy = first.y - last.y;
+  if (dx * dx + dy * dy < 40 * 40) return waypoints.length - 1;
+  return waypoints.length;
+}
+
+export function buildRouteArrows(track) {
+  const group = new THREE.Group();
+  const wps = track.waypoints;
+  if (!wps || wps.length < 2 || track.showRouteArrows === false) return group;
+
+  const loopLen = loopLength(wps);
+  const arrowMat = mat('route-arrow', () => new THREE.MeshLambertMaterial({
+    color: 0x33ee66,
+    emissive: 0x115522,
+  }));
+  const step = track.name === 'Mud Bog' ? 1 : 2;
+
+  for (let i = 0; i < loopLen; i += step) {
+    const p = wps[i];
+    const next = wps[(i + 1) % loopLen];
+    const dx = next.x - p.x;
+    const dy = next.y - p.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const tx = dx / len;
+    const ty = dy / len;
+    const nx = -ty;
+    const ny = tx;
+
+    const chevron = new THREE.Group();
+    for (const side of [-1, 1]) {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.55), arrowMat);
+      wing.position.set(side * 0.18, 0, 0.12);
+      wing.rotation.y = side * 0.55;
+      chevron.add(wing);
+    }
+    const stem = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.35), arrowMat);
+    stem.position.set(0, 0, -0.1);
+    chevron.add(stem);
+
+    chevron.position.set(gx(p.x), 0.26, gz(p.y));
+    chevron.rotation.y = Math.atan2(tx, ty);
+    group.add(chevron);
   }
 
   return group;
