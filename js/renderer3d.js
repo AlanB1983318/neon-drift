@@ -1,23 +1,23 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=35';
-import { getRoadPointsForMinimap } from './tracks.js?v=35';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=36';
+import { getRoadPointsForMinimap } from './tracks.js?v=36';
 import {
   buildItemBoxGroup,
   buildCoinGroup,
   buildShellGroup,
   buildBananaGroup,
-} from './itemMeshes.js?v=35';
+} from './itemMeshes.js?v=36';
 import {
   buildGrassBase,
   buildRoad,
   buildRoadMarkings,
-  buildRouteArrows,
+  buildRouteSigns,
   buildHazardPatches,
   buildSimpleBarrier,
   buildStartGrid,
   buildWaterPool,
   clearMatCache,
-} from './trackbuilder.js?v=35';
+} from './trackbuilder.js?v=36';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -247,7 +247,7 @@ export class Renderer3D {
     this.trackGroup.add(buildGrassBase(this.textures));
     this.trackGroup.add(buildRoad(track, this.textures));
     this.trackGroup.add(buildRoadMarkings(track));
-    this.trackGroup.add(buildRouteArrows(track));
+    this.trackGroup.add(buildRouteSigns(track));
     this.trackGroup.add(buildHazardPatches(track, this.textures));
 
     for (const surf of track.surfaces) {

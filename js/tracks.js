@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=35';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=35';
+import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=36';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=36';
 
 function distToWaypointRoad(waypoints, x, y, roadWidth = 58) {
   if (!waypoints?.length) return Infinity;
@@ -182,7 +182,7 @@ export const TRACKS = [
 
   makeTrack({
     name: 'Mud Bog',
-    description: 'Follow the green arrows — stay on the outer loop around the swamp.',
+    description: 'Follow the roadside signs — stay on the outer loop around the swamp.',
     roadWidth: 60,
     sceneryCount: 42,
     surfaces: [
@@ -219,7 +219,6 @@ export const TRACKS = [
       { x: 495, y: 510, angle: -Math.PI / 2 },
     ],
     decorations: [
-      { type: 'sign', x: 480, y: 490, label: 'OUTER LOOP →' },
       { type: 'cone', x: 500, y: 450 }, { type: 'cone', x: 460, y: 450 },
       { type: 'rock', x: 330, y: 170 }, { type: 'rock', x: 630, y: 420 },
     ],

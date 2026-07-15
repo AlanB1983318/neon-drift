@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=35';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=36';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -232,36 +232,67 @@ function loopLength(waypoints) {
   return waypoints.length;
 }
 
-export function buildRouteArrows(track) {
+export function buildRouteSigns(track) {
   const group = new THREE.Group();
   const wps = track.waypoints;
   if (!wps || wps.length < 2 || track.showRouteArrows === false) return group;
 
   const loopLen = loopLength(wps);
-  const arrowMat = mat('route-arrow', () => new THREE.MeshLambertMaterial({
-    color: 0x33ee66,
-    emissive: 0x115522,
+  const halfRoad = (track.roadWidth || 58) / 2;
+  const shoulder = track.shoulderWidth || 10;
+  const sideOffset = halfRoad + shoulder + 16;
+  const step = track.name === 'Mud Bog' ? 2 : 3;
+
+  const postMat = mat('sign-post', () => new THREE.MeshLambertMaterial({ color: 0x6a6a6a }));
+  const boardMat = mat('sign-board', () => new THREE.MeshLambertMaterial({ color: 0x145a28 }));
+  const arrowMat = mat('sign-arrow', () => new THREE.MeshLambertMaterial({
+    color: 0x66ff99,
+    emissive: 0x113322,
   }));
-  const step = track.name === 'Mud Bog' ? 1 : 2;
+  const stripeMat = mat('sign-stripe', () => new THREE.MeshLambertMaterial({ color: 0xffffff }));
 
   for (let i = 0; i < loopLen; i += step) {
     const p = wps[i];
     const next = wps[(i + 1) % loopLen];
     const dx = next.x - p.x;
     const dy = next.y - p.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
     const heading = Math.atan2(dy, dx);
+    const side = i % 2 === 0 ? 1 : -1;
 
-    const chevron = new THREE.Group();
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.46, 4), arrowMat);
-    head.rotation.x = Math.PI / 2;
-    head.position.z = 0.14;
-    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.3), arrowMat);
-    tail.position.z = -0.14;
-    chevron.add(head, tail);
+    const sx = p.x + nx * sideOffset * side;
+    const sy = p.y + ny * sideOffset * side;
+    const faceX = side > 0 ? -1 : 1;
 
-    chevron.position.set(gx(p.x), 0.26, gz(p.y));
-    chevron.rotation.y = -heading + Math.PI / 2;
-    group.add(chevron);
+    const sign = new THREE.Group();
+    sign.position.set(gx(sx), 0, gz(sy));
+    sign.rotation.y = -heading + Math.PI / 2;
+
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 1.55, 5), postMat);
+    post.position.y = 0.78;
+    sign.add(post);
+
+    const board = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.82, 1.55), boardMat);
+    board.position.set(faceX * 0.2, 1.48, 0);
+    sign.add(board);
+
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 1.55), stripeMat);
+    stripe.position.set(faceX * 0.21, 1.82, 0);
+    sign.add(stripe);
+
+    const arrow = new THREE.Group();
+    const head = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.32, 3), arrowMat);
+    head.rotation.x = -Math.PI / 2;
+    head.position.z = 0.36;
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.24), arrowMat);
+    tail.position.z = 0.14;
+    arrow.add(head, tail);
+    arrow.position.set(faceX * 0.24, 1.45, 0);
+    sign.add(arrow);
+
+    group.add(sign);
   }
 
   return group;
