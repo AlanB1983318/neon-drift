@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=29';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=29';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=30';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=30';
 
 export class UI {
   constructor(overlay, callbacks) {
@@ -62,9 +62,6 @@ export class UI {
             <div id="hud-track" class="track-name-hud"></div>
             <div class="lap-display" id="hud-lap"></div>
             <div id="hud-speed" class="speed-hud"></div>
-          </div>
-          <div class="hud-center hud-panel">
-            <div class="position-display" id="hud-position"></div>
           </div>
           <div class="hud-right hud-panel">
             <div class="item-slot" id="hud-item">
@@ -278,7 +275,6 @@ export class UI {
   updateRaceHud(data) {
     document.getElementById('hud-track').textContent = data.trackName.toUpperCase();
     document.getElementById('hud-lap').textContent = `LAP ${data.lap}/${data.totalLaps}`;
-    document.getElementById('hud-position').textContent = this._ordinal(data.position).toUpperCase();
     document.getElementById('hud-speed').textContent = `${Math.round(data.speed * 22)} MPH`;
     document.getElementById('hud-nitro').style.width =
       `${(data.nitro / data.nitroMax) * 100}%`;
@@ -322,7 +318,6 @@ export class UI {
         <div class="racer-slot ${r.isPlayer ? 'player-slot' : ''}" style="border-color:${r.color}">
           <span class="racer-color" style="background:${r.color}"></span>
           <span class="racer-name">${r.name}</span>
-          <span class="racer-pos">${this._ordinal(r.position).toUpperCase()}</span>
           <span class="racer-lap">L${r.lap}</span>
         </div>
       `).join('');

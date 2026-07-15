@@ -1,11 +1,11 @@
-import { Car } from './car.js?v=29';
-import { AIController } from './ai.js?v=29';
-import { Renderer3D } from './renderer3d.js?v=29';
-import { AudioEngine } from './audio.js?v=29';
-import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=29';
-import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=29';
-import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=29';
-import { ItemSystem, ITEMS } from './items.js?v=29';
+import { Car } from './car.js?v=30';
+import { AIController } from './ai.js?v=30';
+import { Renderer3D } from './renderer3d.js?v=30';
+import { AudioEngine } from './audio.js?v=30';
+import { TRACKS, getSurfaceAt, getRaceProgress } from './tracks.js?v=30';
+import { getStats, awardRaceCredits, unlockNextTrack, writeSave, loadSave } from './save.js?v=30';
+import { TRUCK_COLORS, LAPS_PER_RACE } from './utils.js?v=30';
+import { ItemSystem, ITEMS } from './items.js?v=30';
 
 export const GameState = {
   MENU: 'menu',

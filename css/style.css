@@ -299,8 +299,7 @@ body {
 }
 
 .racer-name { flex: 1; letter-spacing: 1px; }
-.racer-pos { color: #ffcc00; min-width: 32px; text-align: center; }
-.racer-lap { color: #aaa; }
+.racer-lap { color: #aaa; margin-left: auto; }
 
 .hud-row {
   display: flex;
@@ -321,18 +320,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.hud-center {
-  text-align: center;
-}
-
-.position-display {
-  font-family: "Bangers", "Impact", sans-serif;
-  font-size: 3.5rem;
-  color: #ffff00;
-  text-shadow: 3px 3px 0 #cc4400, 0 0 10px rgba(255, 200, 0, 0.5);
-  letter-spacing: 2px;
 }
 
 .lap-display {
@@ -652,10 +639,6 @@ body {
   .controls-hint {
     font-size: 0.78rem;
     padding: 0 12px;
-  }
-
-  .position-display {
-    font-size: 2.4rem;
   }
 
   .hud-row {
