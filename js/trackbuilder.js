@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=34';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=35';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -249,25 +249,18 @@ export function buildRouteArrows(track) {
     const next = wps[(i + 1) % loopLen];
     const dx = next.x - p.x;
     const dy = next.y - p.y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const tx = dx / len;
-    const ty = dy / len;
-    const nx = -ty;
-    const ny = tx;
+    const heading = Math.atan2(dy, dx);
 
     const chevron = new THREE.Group();
-    for (const side of [-1, 1]) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.55), arrowMat);
-      wing.position.set(side * 0.18, 0, 0.12);
-      wing.rotation.y = side * -0.55;
-      chevron.add(wing);
-    }
-    const stem = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.35), arrowMat);
-    stem.position.set(0, 0, -0.18);
-    chevron.add(stem);
+    const head = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.46, 4), arrowMat);
+    head.rotation.x = Math.PI / 2;
+    head.position.z = 0.14;
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.3), arrowMat);
+    tail.position.z = -0.14;
+    chevron.add(head, tail);
 
     chevron.position.set(gx(p.x), 0.26, gz(p.y));
-    chevron.rotation.y = Math.atan2(tx, ty) + Math.PI;
+    chevron.rotation.y = -heading + Math.PI / 2;
     group.add(chevron);
   }
 

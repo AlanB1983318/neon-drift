@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=34';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=34';
+import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=35';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=35';
 
 function distToWaypointRoad(waypoints, x, y, roadWidth = 58) {
   if (!waypoints?.length) return Infinity;
