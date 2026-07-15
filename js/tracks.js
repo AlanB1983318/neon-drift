@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=37';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=37';
+import { SURFACE, dist, clamp, CANVAS_W, CANVAS_H } from './utils.js?v=38';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=38';
 
 function distToWaypointRoad(waypoints, x, y, roadWidth = 58) {
   if (!waypoints?.length) return Infinity;
@@ -304,50 +304,41 @@ export const TRACKS = [
 
   makeTrack({
     name: 'Grand Prix',
-    description: 'The finale — long, technical, and brutal.',
+    description: 'The finale — fast straights, sweeping esses, full stadium lap.',
     roadWidth: 58,
     surfaces: [
       { type: 'GRASS', x: 0, y: 0, w: 960, h: 640 },
-      { type: 'ASPHALT', x: 130, y: 270, w: 220, h: 75 },
-      { type: 'ASPHALT', x: 610, y: 270, w: 220, h: 75 },
-      { type: 'MUD', x: 380, y: 150, w: 200, h: 90 },
-      { type: 'MUD', x: 380, y: 400, w: 200, h: 90 },
-      { type: 'WATER', x: 440, y: 285, w: 80, h: 70 },
+      { type: 'ASPHALT', x: 150, y: 455, w: 660, h: 58 },
+      { type: 'ASPHALT', x: 280, y: 112, w: 400, h: 52 },
+      { type: 'MUD', x: 130, y: 270, w: 100, h: 110 },
+      { type: 'MUD', x: 730, y: 270, w: 100, h: 110 },
     ],
     walls: [
       { x: 120, y: 80, w: 720, h: 20 },
       { x: 120, y: 540, w: 720, h: 20 },
       { x: 120, y: 80, w: 20, h: 480 },
       { x: 820, y: 80, w: 20, h: 480 },
-      { x: 340, y: 130, w: 22, h: 75 },
-      { x: 600, y: 130, w: 22, h: 75 },
-      { x: 480, y: 360, w: 60, h: 22 },
     ],
-    checkpointIndices: [0, 5, 10, 15, 20, 25],
+    checkpointIndices: [0, 4, 8, 12, 16],
     waypoints: [
-      { x: 480, y: 500 }, { x: 400, y: 485 }, { x: 310, y: 450 }, { x: 230, y: 400 },
-      { x: 180, y: 330 }, { x: 170, y: 260 }, { x: 200, y: 200 }, { x: 270, y: 155 },
-      { x: 360, y: 125 }, { x: 460, y: 115 }, { x: 560, y: 125 }, { x: 650, y: 155 },
-      { x: 720, y: 200 }, { x: 770, y: 260 }, { x: 780, y: 330 }, { x: 750, y: 400 },
-      { x: 680, y: 455 }, { x: 590, y: 490 }, { x: 500, y: 495 }, { x: 440, y: 460 },
-      { x: 420, y: 410 }, { x: 440, y: 360 }, { x: 500, y: 340 }, { x: 560, y: 360 },
-      { x: 580, y: 410 }, { x: 560, y: 460 }, { x: 500, y: 495 }, { x: 420, y: 480 },
-      { x: 360, y: 440 }, { x: 340, y: 390 }, { x: 360, y: 340 }, { x: 420, y: 310 },
-      { x: 500, y: 300 }, { x: 580, y: 310 }, { x: 640, y: 340 }, { x: 660, y: 390 },
-      { x: 640, y: 440 }, { x: 580, y: 470 }, { x: 500, y: 495 }, { x: 480, y: 500 },
+      { x: 480, y: 500 }, { x: 380, y: 490 }, { x: 280, y: 460 }, { x: 200, y: 410 },
+      { x: 160, y: 340 }, { x: 170, y: 260 }, { x: 220, y: 190 }, { x: 300, y: 145 },
+      { x: 400, y: 125 }, { x: 520, y: 120 }, { x: 640, y: 135 }, { x: 720, y: 180 },
+      { x: 770, y: 250 }, { x: 790, y: 320 }, { x: 760, y: 385 }, { x: 700, y: 430 },
+      { x: 620, y: 465 }, { x: 550, y: 488 }, { x: 480, y: 500 },
     ],
     starts: [
-      { x: 440, y: 475, angle: -Math.PI / 2 },
-      { x: 460, y: 485, angle: -Math.PI / 2 },
+      { x: 430, y: 478, angle: -Math.PI / 2 },
+      { x: 455, y: 488, angle: -Math.PI / 2 },
       { x: 480, y: 495, angle: -Math.PI / 2 },
-      { x: 500, y: 485, angle: -Math.PI / 2 },
+      { x: 505, y: 488, angle: -Math.PI / 2 },
     ],
     decorations: [
       { type: 'grandstand', x: 480, y: 60 },
       { type: 'flag', x: 480, y: 60 },
       { type: 'tire', x: 130, y: 530 },
-      { type: 'tree', x: 50, y: 320 },
     ],
+    sceneryCount: 38,
   }),
 ];
 

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=37">
+  <link rel="stylesheet" href="css/style.css?v=38">
   <script type="importmap">
   {
     "imports": {
@@ -40,7 +40,7 @@
         var load = document.getElementById('boot-loading');
         if (load) load.classList.add('hidden');
         box.classList.remove('hidden');
-        box.innerHTML = '<h1>Game failed to load</h1><p>' + (e.message || 'Unknown error') + '</p><p>Try a hard refresh: Ctrl+Shift+R (or clear cache on mobile).</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=37">Reload live version</a></p>';
+        box.innerHTML = '<h1>Game failed to load</h1><p>' + (e.message || 'Unknown error') + '</p><p>Try a hard refresh: Ctrl+Shift+R (or clear cache on mobile).</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=38">Reload live version</a></p>';
       });
       window.addEventListener('unhandledrejection', function (e) {
         var box = document.getElementById('boot-error');
@@ -48,10 +48,10 @@
         if (load) load.classList.add('hidden');
         box.classList.remove('hidden');
         var msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason || 'Module load failed');
-        box.innerHTML = '<h1>Game failed to load</h1><p>' + msg + '</p><p>Check your connection (Three.js loads from CDN). Hard refresh: Ctrl+Shift+R.</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=37">Reload live version</a></p>';
+        box.innerHTML = '<h1>Game failed to load</h1><p>' + msg + '</p><p>Check your connection (Three.js loads from CDN). Hard refresh: Ctrl+Shift+R.</p><p><a href="https://alanb1983318.github.io/neon-drift/?v=38">Reload live version</a></p>';
       });
     })();
   </script>
-  <script type="module" src="js/main.js?v=37"></script>
+  <script type="module" src="js/main.js?v=38"></script>
 </body>
 </html>

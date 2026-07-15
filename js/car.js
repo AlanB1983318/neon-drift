@@ -1,5 +1,5 @@
-import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=37';
-import { getLoopLength } from './tracks.js?v=37';
+import { clamp, dist, SURFACE, LAPS_PER_RACE } from './utils.js?v=38';
+import { getLoopLength } from './tracks.js?v=38';
 
 export class Car {
   constructor(x, y, angle, stats, color, isPlayer = false, number = 1) {
