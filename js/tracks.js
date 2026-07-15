@@ -1,5 +1,5 @@
-import { SURFACE, dist, clamp } from './utils.js?v=30';
-import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=30';
+import { SURFACE, dist, clamp } from './utils.js?v=31';
+import { boxesFromWaypoints, coinsFromWaypoints } from './items.js?v=31';
 
 function makeTrack(config) {
   const waypoints = config.waypoints;
@@ -26,11 +26,17 @@ function makeTrack(config) {
 }
 
 function checkpointsAlongWaypoints(waypoints, indices, radii = []) {
-  return indices.map((i, idx) => ({
-    x: waypoints[i].x,
-    y: waypoints[i].y,
-    radius: radii[idx] ?? 55,
-  }));
+  return indices.map((i, idx) => {
+    const wp = waypoints[i];
+    if (!wp) {
+      throw new Error(`Track checkpoint index ${i} is missing (only ${waypoints.length} waypoints).`);
+    }
+    return {
+      x: wp.x,
+      y: wp.y,
+      radius: radii[idx] ?? 55,
+    };
+  });
 }
 
 function distToSegment(px, py, ax, ay, bx, by) {
@@ -87,7 +93,7 @@ export const TRACKS = [
       { x: 540, y: 400, w: 70, h: 22 },
       { x: 200, y: 160, w: 22, h: 60 },
     ],
-    checkpointIndices: [0, 5, 10, 15, 19],
+    checkpointIndices: [0, 5, 10, 15, 18],
     waypoints: [
       { x: 480, y: 510 }, { x: 400, y: 495 }, { x: 310, y: 460 }, { x: 220, y: 400 },
       { x: 160, y: 320 }, { x: 140, y: 240 }, { x: 160, y: 170 }, { x: 230, y: 120 },

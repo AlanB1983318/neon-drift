@@ -1,5 +1,5 @@
-import { buyUpgrade, getUpgradeCost } from './save.js?v=30';
-import { MAX_UPGRADE_LEVEL } from './utils.js?v=30';
+import { buyUpgrade, getUpgradeCost } from './save.js?v=31';
+import { MAX_UPGRADE_LEVEL } from './utils.js?v=31';
 
 export class UI {
   constructor(overlay, callbacks) {
