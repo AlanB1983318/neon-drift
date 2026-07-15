@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=33';
+import { SURFACE, CANVAS_W, CANVAS_H } from './utils.js?v=34';
 
 const SCALE = 0.12;
 const CX = CANVAS_W / 2;
@@ -259,15 +259,15 @@ export function buildRouteArrows(track) {
     for (const side of [-1, 1]) {
       const wing = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.55), arrowMat);
       wing.position.set(side * 0.18, 0, 0.12);
-      wing.rotation.y = side * 0.55;
+      wing.rotation.y = side * -0.55;
       chevron.add(wing);
     }
     const stem = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.35), arrowMat);
-    stem.position.set(0, 0, -0.1);
+    stem.position.set(0, 0, -0.18);
     chevron.add(stem);
 
     chevron.position.set(gx(p.x), 0.26, gz(p.y));
-    chevron.rotation.y = Math.atan2(tx, ty);
+    chevron.rotation.y = Math.atan2(tx, ty) + Math.PI;
     group.add(chevron);
   }
 

@@ -1,6 +1,6 @@
-import { Game } from './game.js?v=33';
-import { UI } from './ui.js?v=33';
-import { loadSave, resetSave } from './save.js?v=33';
+import { Game } from './game.js?v=34';
+import { UI } from './ui.js?v=34';
+import { loadSave, resetSave } from './save.js?v=34';
 
 function hideBootLoading() {
   document.getElementById('boot-loading')?.classList.add('hidden');
@@ -11,7 +11,7 @@ function showBootError(message) {
   const box = document.getElementById('boot-error');
   if (!box) return;
   box.classList.remove('hidden');
-  box.innerHTML = `<h1>Game failed to load</h1><p>${message}</p><p>Try a hard refresh (Ctrl+Shift+R) or <a href="https://alanb1983318.github.io/neon-drift/?v=33">open the live version</a>.</p>`;
+  box.innerHTML = `<h1>Game failed to load</h1><p>${message}</p><p>Try a hard refresh (Ctrl+Shift+R) or <a href="https://alanb1983318.github.io/neon-drift/?v=34">open the live version</a>.</p>`;
 }
 
 try {
